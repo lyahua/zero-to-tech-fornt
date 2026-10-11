@@ -1,0 +1,131 @@
+# ============================================================
+# 工作流名称
+# ============================================================
+name: Deploy Vue Frontend (Production)
+
+# ============================================================
+# 触发条件
+# ============================================================
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# ============================================================
+# 权限声明（最小权限原则）
+# ============================================================
+permissions:
+  contents: read
+
+# ============================================================
+# 任务定义
+# ============================================================
+jobs:
+  deploy:
+    # ==========================================================
+    # 指定使用 production 环境
+    # 作用：
+    # 1. 加载 production 的 secrets 和 variables
+    # 2. 如果配了审批人，会在这里卡住等审批
+    # 3. GitHub Actions 页面会显示 "production" 标签
+    # ==========================================================
+    environment: production
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------------------------
+      # 步骤 1：拉代码
+      # ----------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------
+      # 临时验证：确认变量都能读到
+      # 验证完删掉或注释掉
+      # ----------------------------------------------------------
+      - name: Debug - Print variables
+        run: |
+          echo "=== Environment Variables (vars) ==="
+          echo "NODE_VERSION=${{ vars.NODE_VERSION }}"
+          echo "DEPLOY_PATH=${{ vars.DEPLOY_PATH }}"
+          echo "VITE_API_BASE=${{ vars.VITE_API_BASE }}"
+
+          echo ""
+          echo "=== Environment Secrets (secrets) ==="
+          echo "SSH_HOST=${{ secrets.SSH_HOST }}"
+          echo "SSH_USER=${{ secrets.SSH_USER }}"
+          echo "SSH_PRIVATE_KEY exists: ${{ secrets.SSH_PRIVATE_KEY != '' }}"
+
+          echo ""
+          echo "=== Environment name ==="
+          echo "environment=${{ vars.environment || 'not set' }}"
+
+      # ----------------------------------------------------------
+      # 步骤 2：安装 Node.js
+      # Node 版本从 Environment variables 读取
+      # ----------------------------------------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ vars.NODE_VERSION }}
+          cache: npm
+
+      # ----------------------------------------------------------
+      # 步骤 3：安装依赖
+      # ----------------------------------------------------------
+      - name: Install
+        run: npm ci
+
+      # ----------------------------------------------------------
+      # 步骤 4：构建
+      # 前端环境变量从 Environment variables 读取
+      # ----------------------------------------------------------
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+
+      # ----------------------------------------------------------
+      # 步骤 5：上传 dist 到服务器
+      # SSH 信息从 Environment secrets 读取
+      # ----------------------------------------------------------
+      - name: Upload dist
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'dist'
+          target: /tmp/frontend-release
+
+      # ----------------------------------------------------------
+      # 步骤 6：原子部署
+      # 部署路径从 Environment variables 读取
+      # ----------------------------------------------------------
+      - name: Atomic deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
+            RELEASE_DIR="$DEPLOY_PATH/releases/$(date +%Y%m%d-%H%M%S)"
+
+            mkdir -p "$RELEASE_DIR"
+            mv /tmp/frontend-release/dist "$RELEASE_DIR/dist"
+
+            ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
+
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+      # ----------------------------------------------------------
+      # 步骤 7：健康检查
+      # ----------------------------------------------------------
+      - name: Health check
+        run: |
+          curl -f http://${{ secrets.SSH_HOST }}/ || exit 1
