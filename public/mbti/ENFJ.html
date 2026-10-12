@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENFJ · 个人能力 &amp; 世界格局 SWOT 高可能性可视化（影响强度 × 相关度）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f3faf4;
+    --panel:#ffffff;
+    --ink:#1f2d22;
+    --ink-soft:#41544a;
+    --ink-mute:#6b8074;
+    --grid-line:#bcd8c2;
+    --axis:#5a7263;
+    --theme:#1b6b3a;
+    --theme-soft:#dff0e3;
+    --theme-line:#9fd6ad;
+
+    --s-strong:#1b6b3a; --s-bg:#e9f6ec; --s-line:#9fd6ad;
+    --w-strong:#6f8f2e; --w-bg:#eef4e2; --w-line:#c5d79a;
+    --o-strong:#0f7d77; --o-bg:#e3f4f2; --o-line:#9bd9d3;
+    --t-strong:#9a5a2c; --t-bg:#f6efe6; --t-line:#e0c4a6;
+
+    --hi:#c43d2a;
+    --md:#c98a16;
+    --lo:#7a8a82;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #e3f3e6 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #e6f2ea 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    padding:32px 18px 60px;
+    line-height:1.6;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  header.page{text-align:center;margin-bottom:18px;}
+  header.page .kicker{
+    display:inline-block;font-size:12px;letter-spacing:2px;color:#fff;
+    background:var(--theme);padding:4px 14px;border-radius:999px;font-weight:700;margin-bottom:10px;
+  }
+  header.page h1{font-size:29px;margin:0 0 6px;letter-spacing:1px;color:#1c3a28;}
+  header.page p.sub{margin:0;color:var(--ink-soft);font-size:14px;}
+
+  /* 人格概要 */
+  .persona{
+    border:1px solid #d2e4d6;border-top:4px solid var(--theme);
+    border-radius:14px;padding:18px 20px 14px;
+    background:linear-gradient(180deg, #ffffff 0%, #f5fbf6 100%);
+    box-shadow:0 2px 10px rgba(27,107,58,.05);
+    margin-top:14px;
+  }
+  .persona .head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .persona h2{margin:0;font-size:24px;color:var(--theme);letter-spacing:1px;}
+  .persona .alias{font-size:14px;color:var(--ink-mute);}
+  .persona .quote{font-size:14px;color:var(--ink-soft);font-style:italic;margin:10px 0 12px;}
+  .dim-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .dim{
+    font-size:12.5px;padding:3px 11px;border-radius:6px;
+    background:var(--theme-soft);color:#1b3a26;border:1px solid #b8dac1;font-weight:600;
+  }
+  .persona .desc{font-size:14px;color:var(--ink-soft);}
+  .func-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;}
+  .func{background:#f7fbf8;border:1px solid #d9e9dd;border-radius:10px;padding:8px 10px;}
+  .func .fname{font-size:13px;font-weight:800;color:var(--theme);}
+  .func .frole{font-size:11px;color:var(--ink-mute);margin-left:4px;}
+  .func .fdesc{font-size:11.5px;color:var(--ink-soft);margin-top:2px;line-height:1.45;}
+
+  /* 图表区 */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;}
+  .card{
+    background:var(--panel);border:1px solid #d2e4d6;border-radius:14px;
+    padding:14px 16px;box-shadow:0 2px 8px rgba(27,107,58,.05);
+  }
+  .card h3{margin:0 0 8px;font-size:16px;color:#1c3a28;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .card h3 .tag{
+    font-size:11px;background:#eaf5ec;color:#1b3a26;
+    padding:2px 8px;border-radius:6px;font-weight:600;border:1px solid #cfe0d3;
+  }
+  .chart{width:100%;height:340px;}
+
+  /* SWOT */
+  .swot-section{margin-top:18px;}
+  .swot-title{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .swot-title h3{margin:0;font-size:19px;color:#1c3a28;}
+  .swot-title .sub{font-size:13px;color:var(--ink-mute);}
+
+  .axes-hint{
+    display:flex;justify-content:space-between;max-width:820px;margin:0 auto 8px;
+    font-size:12.5px;color:var(--axis);font-weight:700;
+  }
+  .matrix{
+    position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  }
+  .matrix::before{
+    content:"";position:absolute;top:5%;bottom:5%;left:50%;width:2px;
+    background:var(--grid-line);transform:translateX(-1px);z-index:0;
+  }
+  .matrix::after{
+    content:"";position:absolute;left:5%;right:5%;top:50%;height:2px;
+    background:var(--grid-line);transform:translateY(-1px);z-index:0;
+  }
+  .q{
+    position:relative;z-index:1;border-radius:10px;padding:13px 15px;
+    border:1.5px solid var(--line);background:var(--bg-c);
+  }
+  .q h4{margin:0 0 8px;font-size:15.5px;color:var(--strong);display:flex;align-items:center;gap:6px;}
+  .q h4 .en{font-size:11px;opacity:.7;font-weight:500;letter-spacing:1px;}
+  .q ul{margin:0;padding:0;list-style:none;}
+  .q li{
+    font-size:13.5px;color:var(--ink);padding:6px 0 6px 18px;position:relative;
+    border-bottom:1px dashed #e3ede5;
+  }
+  .q li:last-child{border-bottom:none;}
+  .q li::before{
+    content:"";position:absolute;left:4px;top:14px;width:6px;height:6px;
+    background:var(--strong);border-radius:50%;opacity:.7;
+  }
+  .q.s{--bg-c:var(--s-bg);--line:var(--s-line);--strong:var(--s-strong);}
+  .q.w{--bg-c:var(--w-bg);--line:var(--w-line);--strong:var(--w-strong);}
+  .q.o{--bg-c:var(--o-bg);--line:var(--o-line);--strong:var(--o-strong);}
+  .q.t{--bg-c:var(--t-bg);--line:var(--t-line);--strong:var(--t-strong);}
+
+  .prob{
+    display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;
+    font-weight:700;letter-spacing:.5px;margin-left:6px;vertical-align:middle;border:1px solid;
+  }
+  .prob.hi{background:#fdecea;color:var(--hi);border-color:#f3b8af;}
+  .prob.md{background:#fdf4dd;color:var(--md);border-color:#ecd18a;}
+  .prob.lo{background:#eef1ef;color:var(--lo);border-color:#c4cfc9;}
+  .why{font-size:12px;color:var(--ink-mute);display:block;margin-top:1px;}
+
+  /* ===== 世界格局：强度×相关度 矩阵 ===== */
+  .world-section{margin-top:18px;}
+  .legend-chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
+  .chip{
+    font-size:12px;padding:2px 10px;border-radius:999px;font-weight:700;
+    border:1px solid;background:#fff;
+  }
+  .chip.good{color:#1b6b3a;border-color:#9fd6ad;background:#eef8f0;}
+  .chip.goodplus{color:#54681c;border-color:#c5d79a;background:#f4f8e9;}
+  .chip.double{color:#0c5a55;border-color:#9bd9d3;background:#e6f5f4;}
+  .chip.neutral{color:#5a6a63;border-color:#c4cfc9;background:#f0f3f1;}
+  .chip.bad{color:#7c4822;border-color:#e0c4a6;background:#faf3ea;}
+
+  #quadChart{width:100%;height:500px;}
+
+  .quad-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;}
+  .qc{
+    border-radius:10px;padding:12px 13px;border:1px solid var(--qc-line);background:var(--qc-bg);
+    border-top:3px solid var(--qc-strong);
+  }
+  .qc h4{margin:0 0 4px;font-size:13.5px;color:var(--qc-strong);}
+  .qc .cond{font-size:11px;color:var(--ink-mute);margin-bottom:6px;}
+  .qc .items{font-size:12px;color:var(--ink);line-height:1.6;}
+  .qc .act{font-size:11.5px;color:var(--ink-soft);margin-top:6px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.12);}
+  .qc.core{--qc-strong:#0f7d77;--qc-bg:#e9f6f5;--qc-line:#b9dedb;}
+  .qc.lever{--qc-strong:#1b6b3a;--qc-bg:#eef8f0;--qc-line:#bfe3c6;}
+  .qc.bg{--qc-strong:#6a7a72;--qc-bg:#f1f4f2;--qc-line:#cdd7d2;}
+  .qc.watch{--qc-strong:#9a5a2c;--qc-bg:#faf3ea;--qc-line:#e6cdB4;}
+
+  /* 双维度对照表 */
+  table.vars{
+    width:100%;border-collapse:collapse;background:var(--panel);
+    border-radius:12px;overflow:hidden;font-size:13px;margin-top:14px;
+    box-shadow:0 2px 8px rgba(27,107,58,.05);
+  }
+  table.vars th{
+    background:#eaf5ec;color:#1b3a26;padding:9px 10px;text-align:left;
+    border-bottom:2px solid #cfe0d3;font-size:12.5px;letter-spacing:.5px;
+  }
+  table.vars td{padding:8px 10px;border-bottom:1px solid #e8f0ec;vertical-align:middle;}
+  table.vars tr:last-child td{border-bottom:none;}
+  td.vname{font-weight:700;white-space:nowrap;}
+  .badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;font-weight:700;border:1px solid;white-space:nowrap;}
+  .badge.good{color:#1b6b3a;border-color:#9fd6ad;background:#eef8f0;}
+  .badge.goodplus{color:#54681c;border-color:#c5d79a;background:#f4f8e9;}
+  .badge.double{color:#0c5a55;border-color:#9bd9d3;background:#e6f5f4;}
+  .badge.neutral{color:#5a6a63;border-color:#c4cfc9;background:#f0f3f1;}
+  .badge.bad{color:#7c4822;border-color:#e0c4a6;background:#faf3ea;}
+  .mini{display:flex;align-items:center;gap:6px;min-width:150px;}
+  .mini .track{flex:1;height:7px;background:#e8f0ec;border-radius:4px;overflow:hidden;}
+  .mini .fill{height:100%;border-radius:4px;}
+  .mini .num{font-size:11.5px;font-weight:700;color:var(--ink-soft);width:22px;text-align:right;}
+  td.pri{font-weight:800;color:#0c5a55;white-space:nowrap;}
+  td.quad-tag{font-size:11.5px;color:var(--ink-mute);white-space:nowrap;}
+
+  /* 趋势列表 */
+  .world{margin-top:18px;display:grid;grid-template-columns:1.1fr 1fr;gap:18px;}
+  .trend-list{display:flex;flex-direction:column;gap:10px;}
+  .trend{border:1px solid #d2e4d6;border-radius:10px;padding:10px 12px;background:#fbfdfb;}
+  .trend h4{margin:0 0 4px;font-size:14px;color:#1c3a28;display:flex;align-items:center;flex-wrap:wrap;}
+  .trend p{margin:0;font-size:12.5px;color:var(--ink-soft);}
+  .trend .bar{height:6px;background:#e3ede5;border-radius:3px;margin-top:6px;overflow:hidden;}
+  .trend .bar > div{height:100%;border-radius:3px;}
+
+  /* 战略 */
+  .strategy{margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .st{
+    background:#fff;border:1px solid #d2e4d6;border-radius:10px;padding:12px;
+    border-top:3px solid var(--strong);
+  }
+  .st.so{--strong:var(--s-strong);background:var(--s-bg);}
+  .st.wo{--strong:var(--w-strong);background:var(--w-bg);}
+  .st.stt{--strong:var(--o-strong);background:var(--o-bg);}
+  .st.wt{--strong:var(--t-strong);background:var(--t-bg);}
+  .st h4{margin:0 0 6px;font-size:14px;color:var(--strong);}
+  .st p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.55;}
+
+  .verdict{
+    margin-top:18px;background:#fff;border:1px solid #d2e4d6;border-left:4px solid var(--theme);
+    border-radius:12px;padding:16px 18px;
+  }
+  .verdict h3{margin:0 0 8px;font-size:16px;color:#1c3a28;}
+  .verdict p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+
+  footer{text-align:center;color:var(--ink-mute);font-size:12px;margin-top:24px;}
+
+  @media (max-width:900px){
+    .chart-grid,.world{grid-template-columns:1fr;}
+    .strategy,.quad-grid{grid-template-columns:1fr 1fr;}
+    .func-row{grid-template-columns:1fr 1fr;}
+    #quadChart{height:440px;}
+    table.vars .mini{min-width:110px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <span class="kicker">ENFJ</span>
+    <h1>个人能力 &amp; 世界格局 · SWOT 高可能性可视化</h1>
+    <p class="sub">
+      "高可能性 / 大概率" = 2025–2030 周期里最可能成真的路径判断 ·
+      世界格局关键变量按 <b>影响强度 × ENFJ 相关度</b> 双维度定位
+    </p>
+  </header>
+
+  <!-- SWOT -->
+  <div class="swot-section">
+    <div class="swot-title">
+      <h3>ENFJ · SWOT 四象限</h3>
+      <span class="sub">每条带概率徽章（高/中/低）+ ↳ 大概率成真的世界格局锚点</span>
+    </div>
+    <div class="axes-hint">
+      <span>← 内部 · 个人能力</span>
+      <span>外部 · 世界格局 →</span>
+    </div>
+    <div class="matrix" id="swotMatrix"></div>
+  </div>
+
+  <!-- ===== 世界格局：影响强度 × ENFJ 相关度 ===== -->
+  <div class="world-section">
+    <div class="swot-title">
+      <h3>世界格局关键变量 · 影响强度 × ENFJ 相关度矩阵</h3>
+      <span class="sub">2025–2030 · 横轴=对世界/职业环境的改变力度 · 纵轴=与 ENFJ 优势/短板的关联紧密度 · 气泡大小=综合优先级</span>
+    </div>
+
+    <div class="card">
+      <div class="legend-chips">
+        <span class="chip good">● 利好</span>
+        <span class="chip goodplus">● 利好偏多</span>
+        <span class="chip double">● 双刃剑</span>
+        <span class="chip neutral">● 中性</span>
+        <span class="chip bad">● 利空</span>
+      </div>
+      <div id="quadChart"></div>
+    </div>
+
+    <div class="quad-grid" id="quadGrid"></div>
+
+    <table class="vars" id="varsTable">
+      <thead>
+        <tr>
+          <th>关键变量</th><th>属性</th><th>影响强度</th><th>ENFJ 相关度</th><th>优先级</th><th>象限</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- 趋势 -->
+  <div class="world">
+    <div class="card">
+      <h3>高可能性 / 大概率趋势 <span class="tag">ENFJ 视角 · 机会与威胁</span></h3>
+      <div class="trend-list" id="trendList"></div>
+    </div>
+    <div class="card">
+      <h3>读图指南 <span class="tag">怎么用这张矩阵</span></h3>
+      <div class="trend-list">
+        <div class="trend">
+          <h4>① 战略核心区（高影响 × 高相关）</h4>
+          <p>重塑世界且直接命中该类型能力结构 —— SWOT 里 O/T 的主要来源。行动：主战场，每季度复盘一次变量走向。</p>
+        </div>
+        <div class="trend">
+          <h4>② 能力杠杆区（中低影响 × 高相关）</h4>
+          <p>世界改变幅度中等，但对该类型是高杠杆利好（工具平权、需求结构性上升等）。行动：提前布局，投入小、回报大。</p>
+        </div>
+        <div class="trend">
+          <h4>③ 环境背景区（高影响 × 低相关）</h4>
+          <p>会重构行业结构，但与该类型核心能力直接关联弱。行动：知道即可，不做主动投入，需要时再分析。</p>
+        </div>
+        <div class="trend">
+          <h4>④ 观察区（中低影响 × 低相关）</h4>
+          <p>影响间接、传导链条长。行动：低成本跟踪，设半年提醒即可，防止噪声占用核心精力。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 战略 -->
+  <div class="swot-section">
+    <div class="swot-title"><h3>从 SWOT 到行动 · 四类战略</h3></div>
+    <div class="strategy" id="strategy"></div>
+  </div>
+
+  <!-- 终局判断 -->
+  <div class="verdict">
+    <h3>一句话终局判断</h3>
+    <p>矩阵右上角（个人 IP × AI 转型 × 心理健康经济）共同指向同一个结论：当 AI 接管执行与冷分析，组织与人最缺的是"让人相信、让人愿意动起来"的角色——动员力的定价权逆势上升。ENFJ 最大的风险不是被 AI 替代，而是为了点亮所有人而把自己燃尽——边界感与自己的需求，才是长期主义的地基。</p>
+  </div>
+
+    <!-- ===== 补充参考：人格概要与能力倾向（页面末尾）===== -->
+<!-- 人格概要 -->
+  <div class="persona">
+    <div class="head">
+      <h2>ENFJ</h2>
+      <span class="alias">主人公 / 导师 · " teacher "</span>
+    </div>
+    <div class="quote">"我最怕的不是没人听我说话，而是没能点亮那个本该被点亮的人。"</div>
+    <div class="dim-row">
+            <span class="dim">外向 E</span>
+      <span class="dim">直觉 N</span>
+      <span class="dim">情感 F</span>
+      <span class="dim">判断 J</span>
+    </div>
+    <div class="desc">
+      天生的组织者与点燃者。看见每个人的潜力，擅长把愿景变成号召。他们在的地方，就有气氛、方向和出路。
+    </div>
+    <div class="func-row">
+            <div class="func"><span class="fname">Fe</span><span class="frole">主导</span>
+        <div class="fdesc">外倾情感：读取情绪场，动员与协调</div></div>
+      <div class="func"><span class="fname">Ni</span><span class="frole">辅助</span>
+        <div class="fdesc">内倾直觉：给人长期愿景与方向感</div></div>
+      <div class="func"><span class="fname">Se</span><span class="frole">第三</span>
+        <div class="fdesc">外倾实感：当下舞台表现力与氛围感</div></div>
+      <div class="func"><span class="fname">Ti</span><span class="frole">劣势</span>
+        <div class="fdesc">内倾思维：冷逻辑与结构分析是短板</div></div>
+    </div>
+  </div>
+
+  <!-- 个人能力图表 -->
+  <div class="chart-grid">
+    <div class="card">
+      <h3>8 维能力倾向 <span class="tag">雷达</span></h3>
+      <div id="radar" class="chart"></div>
+    </div>
+    <div class="card">
+      <h3>认知功能强度 <span class="tag">主导 → 劣势</span></h3>
+      <div id="stack" class="chart"></div>
+    </div>
+  </div>
+
+  <footer>
+    概率与双维度打分综合：AI/AGI 演进曲线 · 具身智能成本 · 中美科技博弈 · 能源转型 · 人口结构 · 产业链重组 · 利率周期 · 公开研报与共识的主观结构化估计
+  </footer>
+</div>
+
+<script>
+const D = {
+ "type": "ENFJ",
+ "swot": {
+  "S": [
+   {
+    "t": "动员与凝聚人心：把人组织起来",
+    "p": "hi",
+    "w": 92,
+    "why": "AI 蚕食执行角色，\"组织人\"的能力反而溢价"
+   },
+   {
+    "t": "共情 + 表达的影响力组合",
+    "p": "hi",
+    "w": 90,
+    "why": "信息过载时代，\"信任的传递者\"稀缺"
+   },
+   {
+    "t": "带教与人才培养能力",
+    "p": "hi",
+    "w": 82,
+    "why": "AI 转型期人才再培训成为组织刚需"
+   },
+   {
+    "t": "组织氛围与政治敏感度",
+    "p": "md",
+    "w": 75,
+    "why": "扁平化组织更需要黏合剂"
+   }
+  ],
+  "W": [
+   {
+    "t": "过度承诺、边界感弱",
+    "p": "hi",
+    "w": 80,
+    "why": "多线程高投入，能量账户长期赤字"
+   },
+   {
+    "t": "决策被关系拖累：不敢淘汰人",
+    "p": "md",
+    "w": 68,
+    "why": "关键取舍时被\"他怎么办\"吞没"
+   },
+   {
+    "t": "自己的需求排在最后",
+    "p": "md",
+    "w": 65,
+    "why": "情绪劳动型倦怠高发"
+   },
+   {
+    "t": "冷逻辑与反驳能力弱（Ti 劣势）",
+    "p": "md",
+    "w": 58,
+    "why": "董事会与竞标场合吃暗亏"
+   }
+  ],
+  "O": [
+   {
+    "t": "AI 转型培训 / 变革管理",
+    "p": "hi",
+    "w": 88,
+    "why": "组织 AI 化需要\"人的 buy-in\"，正是技术与人的翻译层"
+   },
+   {
+    "t": "教育 / 培训 / 教练经济",
+    "p": "hi",
+    "w": 82,
+    "why": "终身学习 + AI 技能再培训长期增长"
+   },
+   {
+    "t": "个人 IP（人格魅力型）",
+    "p": "hi",
+    "w": 85,
+    "why": "人格影响力可被直接变现"
+   },
+   {
+    "t": "HR 组织发展 / 以人为本管理",
+    "p": "md",
+    "w": 70,
+    "why": "人才战让留存与体验成为核心指标"
+   }
+  ],
+  "T": [
+   {
+    "t": "纯情感联络 / 协调岗位被 AI 客服替代",
+    "p": "hi",
+    "w": 72,
+    "why": "标准化情绪劳动率先被蚕食"
+   },
+   {
+    "t": "情绪劳动倦怠",
+    "p": "md",
+    "w": 68,
+    "why": "高输出无补充机制"
+   },
+   {
+    "t": "人设与真实落差引发塌房风险",
+    "p": "md",
+    "w": 60,
+    "why": "网红时代放大镜效应"
+   },
+   {
+    "t": "注意力经济被头部 IP 挤压",
+    "p": "md",
+    "w": 58,
+    "why": "流量越来越向头部集中"
+   }
+  ]
+ },
+ "worldVars": [
+  {
+   "n": "个人 IP / 创作者经济",
+   "i": 72,
+   "r": 92,
+   "t": "good",
+   "lp": "left",
+   "note": "人格魅力型影响力是 ENFJ 最强的可变现资产"
+  },
+  {
+   "n": "AI/AGI 演进",
+   "i": 96,
+   "r": 80,
+   "t": "double",
+   "lp": "bottom",
+   "note": "对组织与人的冲击是时代命题，ENFJ 恰是\"AI 转型 × 人心 buy-in\"的翻译层"
+  },
+  {
+   "n": "心理健康经济",
+   "i": 72,
+   "r": 85,
+   "t": "good",
+   "lp": "top",
+   "note": "温暖供给稀缺，但需警惕边界感耗竭"
+  },
+  {
+   "n": "人口老龄化",
+   "i": 75,
+   "r": 75,
+   "t": "goodplus",
+   "lp": "bottom",
+   "note": "银发教育、社区重建与代际陪伴需求长期上升"
+  },
+  {
+   "n": "远程与灵活用工",
+   "i": 75,
+   "r": 70,
+   "t": "goodplus",
+   "lp": "left",
+   "note": "分布式组织更需要凝聚力设计"
+  },
+  {
+   "n": "AI 工具平权（开源/低成本）",
+   "i": 74,
+   "r": 72,
+   "t": "good",
+   "lp": "right",
+   "note": "课程制作与社群运营成本骤降"
+  },
+  {
+   "n": "信息战 / AI 内容泛滥",
+   "i": 82,
+   "r": 60,
+   "t": "neutral",
+   "lp": "left",
+   "note": "信任稀缺利好可信赖的传递者，但需穿透噪声"
+  },
+  {
+   "n": "具身智能 / 机器人",
+   "i": 88,
+   "r": 50,
+   "t": "neutral",
+   "lp": "right",
+   "note": "\"人机协作\"叙事需要表达者"
+  },
+  {
+   "n": "中美科技博弈",
+   "i": 90,
+   "r": 50,
+   "t": "neutral",
+   "lp": "bottom",
+   "note": "宏观背景，人才结构调整相关但间接"
+  },
+  {
+   "n": "产业链重组",
+   "i": 80,
+   "r": 48,
+   "t": "neutral",
+   "lp": "bottom",
+   "note": "就业结构变化推培训需求，间接传导"
+  },
+  {
+   "n": "地缘冲突与气候风险",
+   "i": 68,
+   "r": 55,
+   "t": "neutral",
+   "lp": "left",
+   "note": "公众情绪需要安抚，但题材消耗能量"
+  },
+  {
+   "n": "利率周期 / 资本偏短",
+   "i": 70,
+   "r": 48,
+   "t": "bad",
+   "lp": "bottom",
+   "note": "降息前培训与企业预算最先被砍"
+  }
+ ],
+ "radar": [
+  50,
+  60,
+  65,
+  60,
+  80,
+  68,
+  96,
+  95
+ ],
+ "stack": [
+  {
+   "f": "Fe",
+   "v": 95,
+   "role": "主导",
+   "desc": "外倾情感：读取情绪场，动员与协调"
+  },
+  {
+   "f": "Ni",
+   "v": 85,
+   "role": "辅助",
+   "desc": "内倾直觉：给人长期愿景与方向感"
+  },
+  {
+   "f": "Se",
+   "v": 62,
+   "role": "第三",
+   "desc": "外倾实感：当下舞台表现力与氛围感"
+  },
+  {
+   "f": "Ti",
+   "v": 32,
+   "role": "劣势",
+   "desc": "内倾思维：冷逻辑与结构分析是短板"
+  }
+ ],
+ "strategy": [
+  {
+   "c": "so",
+   "n": "SO · 增长型",
+   "t": "把影响力投向\"AI 转型培训 / 变革管理\"高地，成为组织 × AI 的第一翻译官。"
+  },
+  {
+   "c": "wo",
+   "n": "WO · 扭转型",
+   "t": "用数据与框架（Ti 外化工具）补冷逻辑，在关键会议上先摆事实再谈人。"
+  },
+  {
+   "c": "stt",
+   "n": "ST · 多元型",
+   "t": "把人设变成组织资产：内容 + 课程 + 社群三件套，降低个人绑定风险。"
+  },
+  {
+   "c": "wt",
+   "n": "WT · 防御型",
+   "t": "建立情绪边界与补充机制：影响力是马拉松，不是燃烧自己照亮别人。"
+  }
+ ]
+};
+const T = D.type;
+
+/* ========== SWOT ========== */
+const swot = D.swot;
+const names = {S:'优势', W:'劣势', O:'机会', T:'威胁'};
+const probTag = p=>{
+  const m = {hi:'高', md:'中', lo:'低'};
+  return `<span class="prob ${p}">● ${m[p]}概率</span>`;
+};
+document.getElementById('swotMatrix').innerHTML = ['S','W','O','T'].map(cls=>`
+  <div class="q ${cls}">
+    <h4>${names[cls]} <span class="en">${cls}</span></h4>
+    <ul>${swot[cls].map(x=>`
+      <li>${x.t}${probTag(x.p)}
+        <span class="why">↳ ${x.why}</span>
+      </li>`).join('')}
+    </ul>
+  </div>`).join('');
+
+/* ========== 趋势列表 ========== */
+document.getElementById('trendList').innerHTML =
+  [...swot.O, ...swot.T].filter(x=>x.p!=='lo').map(x=>{
+    const c = x.p==='hi'? 'var(--hi)' : 'var(--md)';
+    return `<div class="trend">
+      <h4>${x.t}${probTag(x.p)}</h4>
+      <p>${x.why}</p>
+      <div class="bar"><div style="width:${x.w}%;background:${c};"></div></div>
+    </div>`;
+  }).join('');
+
+/* ========== 战略 ========== */
+document.getElementById('strategy').innerHTML = D.strategy.map(x=>
+  `<div class="st ${x.c}"><h4>${x.n}</h4><p>${x.t}</p></div>`).join('');
+
+/* ========== 世界格局关键变量 ========== */
+const TCOLOR = {
+  good:{c:'#1b6b3a', label:'利好'},
+  goodplus:{c:'#6f8f2e', label:'利好偏多'},
+  double:{c:'#0f7d77', label:'双刃剑'},
+  neutral:{c:'#7a8a82', label:'中性'},
+  bad:{c:'#9a5a2c', label:'利空'}
+};
+const worldVars = D.worldVars;
+const SPLIT_I = 76, SPLIT_R = 64;
+const prio = v => Math.round(v.i * v.r / 100);
+const quadOf = v => {
+  const hiI = v.i > SPLIT_I, hiR = v.r > SPLIT_R;
+  if (hiI && hiR) return {key:'core', name:'战略核心区'};
+  if (!hiI && hiR) return {key:'lever', name:'能力杠杆区'};
+  if (hiI && !hiR) return {key:'bg', name:'环境背景区'};
+  return {key:'watch', name:'观察区'};
+};
+
+/* 气泡矩阵图 */
+const quad = echarts.init(document.getElementById('quadChart'));
+quad.setOption({
+  backgroundColor:'transparent',
+  grid:{left:70,right:40,top:46,bottom:56},
+  tooltip:{
+    formatter:p=>{
+      const v = worldVars.find(x=>x.n===p.data[2]);
+      const tc = TCOLOR[v.t];
+      return `<b>${v.n}</b> · <span style="color:${tc.c};font-weight:700;">${tc.label}</span><br>`+
+        `影响强度：<b>${v.i}</b> / 100<br>${T} 相关度：<b>${v.r}</b> / 100<br>`+
+        `综合优先级：<b>${prio(v)}</b><br><span style="color:#6b8074;font-size:12px;max-width:260px;display:inline-block;">${v.note}</span>`;
+    }
+  },
+  xAxis:{
+    min:60, max:100, name:'影响强度 →', nameLocation:'middle', nameGap:30,
+    nameTextStyle:{color:'#5a7263',fontWeight:700,fontSize:13},
+    axisLine:{lineStyle:{color:'#9fd6ad'}},
+    splitLine:{lineStyle:{color:'#e3ede5'}},
+    axisLabel:{color:'#41544a'}
+  },
+  yAxis:{
+    min:35, max:100, name:T+' 相关度 →', nameLocation:'end',
+    nameTextStyle:{color:'#5a7263',fontWeight:700,fontSize:13,align:'left'},
+    axisLine:{lineStyle:{color:'#9fd6ad'}},
+    splitLine:{lineStyle:{color:'#e3ede5'}},
+    axisLabel:{color:'#41544a'}
+  },
+  series:[{
+    type:'scatter',
+    data: worldVars.map(v=>({
+      value:[v.i, v.r, v.n],
+      symbolSize: 14 + Math.round(prio(v)*0.30),
+      itemStyle:{color:TCOLOR[v.t].c, opacity:.82,
+        borderColor:'#ffffff', borderWidth:1.5},
+      label:{show:true, position:v.lp, distance:6,
+        color:'#1f2d22', fontSize:11.5, fontWeight:600,
+        formatter:v.n}
+    })),
+    markLine:{
+      silent:true, symbol:'none',
+      lineStyle:{color:'#8aa79c', type:'dashed', width:1.5},
+      label:{show:false},
+      data:[{xAxis:SPLIT_I},{yAxis:SPLIT_R}]
+    },
+    markArea:{
+      silent:true,
+      data:[
+        [{xAxis:SPLIT_I, yAxis:SPLIT_R, itemStyle:{color:'rgba(15,125,119,.09)'},
+          label:{show:true, position:'insideTopRight', color:'#0c5a55', fontWeight:800, fontSize:12.5, distance:8,
+            formatter:'战略核心区 · 必须押注'}},
+         {xAxis:100, yAxis:100}],
+        [{xAxis:60, yAxis:SPLIT_R, itemStyle:{color:'rgba(27,107,58,.07)'},
+          label:{show:true, position:'insideTopLeft', color:'#1b6b3a', fontWeight:800, fontSize:12.5, distance:8,
+            formatter:'能力杠杆区 · 以小博大'}},
+         {xAxis:SPLIT_I, yAxis:100}],
+        [{xAxis:SPLIT_I, yAxis:35, itemStyle:{color:'rgba(122,138,130,.08)'},
+          label:{show:true, position:'insideBottomRight', color:'#5a6a63', fontWeight:800, fontSize:12.5, distance:8,
+            formatter:'环境背景区 · 知道即可'}},
+         {xAxis:100, yAxis:SPLIT_R}],
+        [{xAxis:60, yAxis:35, itemStyle:{color:'rgba(154,90,44,.06)'},
+          label:{show:true, position:'insideBottomLeft', color:'#9a5a2c', fontWeight:800, fontSize:12.5, distance:8,
+            formatter:'观察区 · 低成本跟踪'}},
+         {xAxis:SPLIT_I, yAxis:SPLIT_R}]
+      ]
+    }
+  }]
+});
+
+/* 象限小结卡 */
+const quadMeta = [
+  {key:'core', name:'战略核心区', cond:'高影响 × 高相关',
+   act:'主战场：这些变量是 SWOT 中 O/T 的直接来源，每季度复盘一次走向。'},
+  {key:'lever', name:'能力杠杆区', cond:'中低影响 × 高相关',
+   act:'提前布局：投入小、回报大，'+T+' 专属的结构性红利。'},
+  {key:'bg', name:'环境背景区', cond:'高影响 × 低相关',
+   act:'知道即可：不做主动投入，需要时再调用自身优势去分析。'},
+  {key:'watch', name:'观察区', cond:'中低影响 × 低相关',
+   act:'低成本跟踪：设半年提醒，防止噪声占用核心精力。'}
+];
+document.getElementById('quadGrid').innerHTML = quadMeta.map(m=>{
+  const items = worldVars.filter(v=>quadOf(v).key===m.key);
+  return `<div class="qc ${m.key}">
+    <h4>${m.name}（${items.length} 项）</h4>
+    <div class="cond">${m.cond}</div>
+    <div class="items">${items.map(v=>`• ${v.n}`).join('<br>')}</div>
+    <div class="act">↳ ${m.act}</div>
+  </div>`;
+}).join('');
+
+/* 双维度对照表（按优先级降序） */
+const rows = [...worldVars].sort((a,b)=>prio(b)-prio(a)).map(v=>{
+  const tc = TCOLOR[v.t], q = quadOf(v);
+  return `<tr>
+    <td class="vname">${v.n}</td>
+    <td><span class="badge ${v.t}">${tc.label}</span></td>
+    <td><div class="mini"><div class="track"><div class="fill" style="width:${v.i}%;background:${tc.c};"></div></div><span class="num">${v.i}</span></div></td>
+    <td><div class="mini"><div class="track"><div class="fill" style="width:${v.r}%;background:#0f7d77;"></div></div><span class="num">${v.r}</span></div></td>
+    <td class="pri">${prio(v)}</td>
+    <td class="quad-tag">${q.name}</td>
+  </tr>`;
+}).join('');
+document.querySelector('#varsTable tbody').innerHTML = rows;
+
+/* ========== ECharts：能力雷达 + 认知功能 ========== */
+const theme = '#1b6b3a';
+
+const radar = echarts.init(document.getElementById('radar'));
+radar.setOption({
+  backgroundColor:'transparent',
+  tooltip:{},
+  radar:{
+    indicator:['实操动手','危机应对','系统拆解','独立工作','概念抽象','长期规划','情感表达','社交主动'].map(n=>({name:n,max:100})),
+    shape:'polygon', splitNumber:4,
+    axisName:{color:'#1f2d22',fontSize:12,fontWeight:600},
+    splitLine:{lineStyle:{color:'#bcd8c2'}},
+    splitArea:{areaStyle:{color:['#f7fbf8','#eef6f0']}},
+    axisLine:{lineStyle:{color:'#9fd6ad'}}
+  },
+  series:[{
+    type:'radar',
+    data:[{value:D.radar,name:T,
+      lineStyle:{color:theme,width:2.5},
+      areaStyle:{color:theme,opacity:.28},
+      itemStyle:{color:theme},
+      label:{show:true,color:'#1b3a26',fontSize:11}}]
+  }]
+});
+
+const stack = echarts.init(document.getElementById('stack'));
+const funcMap = {};
+D.stack.forEach(x=>{funcMap[x.f]=x.desc;});
+stack.setOption({
+  backgroundColor:'transparent',
+  grid:{left:130,right:50,top:16,bottom:26},
+  tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+    formatter:p=>{
+      return `<b>${p[0].name}</b> · ${funcMap[p[0].name.split(' · ')[1]]||''}<br>强度：${p[0].value}/100`;
+    }},
+  xAxis:{type:'value',max:100,axisLine:{lineStyle:{color:'#9fd6ad'}},
+    splitLine:{lineStyle:{color:'#e3ede5'}}},
+  yAxis:{type:'category',
+    data: D.stack.map(x=>x.role+' · '+x.f).reverse(),
+    axisLine:{lineStyle:{color:'#9fd6ad'}},
+    axisLabel:{color:'#1f2d22',fontWeight:600}},
+  series:[{
+    type:'bar', barWidth:18,
+    data: D.stack.map(x=>({value:x.v})).reverse().map((e,i)=>({
+      value:e.value,
+      itemStyle:{color:['#1b6b3a','#3f8a58','#7fbf8f','#c5d79a'][3-i]}
+    })),
+    label:{show:true,position:'right',color:'#1f2d22',fontWeight:700,formatter:'{c}'}
+  }]
+});
+
+window.addEventListener('resize', ()=>{radar.resize();stack.resize();quad.resize();});
+</script>
+</body>
+</html>
