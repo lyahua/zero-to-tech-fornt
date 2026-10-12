@@ -36,3 +36,5 @@ npm run dev
 ```sh
 npm run build
 ```
+
+测试自动推送
