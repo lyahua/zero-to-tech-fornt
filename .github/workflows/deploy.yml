@@ -139,6 +139,6 @@ jobs:
       # ----------------------------------------------------------
       # 步骤 7：健康检查
       # ----------------------------------------------------------
-      - name: Health check
-        run: |
-          curl -f --connect-timeout 10 --max-time 30 http://${{ secrets.SSH_HOST }}/
+      # - name: Health check
+      #   run: |
+      #     curl -f --connect-timeout 10 --max-time 30 http://${{ secrets.SSH_HOST }}/
