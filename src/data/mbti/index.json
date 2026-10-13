@@ -1,0 +1,226 @@
+[
+  {
+    "type": "ENFJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ENFP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ENTJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ENTP",
+    "theme": "#0f7d77",
+    "vars": 12,
+    "swot": [
+      5,
+      4,
+      5,
+      5
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ESFJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ESFP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ESTJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ESTP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "INFJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "INFP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "INTJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "INTP",
+    "theme": "#0f7d77",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ISFJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ISFP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ISTJ",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  },
+  {
+    "type": "ISTP",
+    "theme": "#1b6b3a",
+    "vars": 12,
+    "swot": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "radar": 8,
+    "stack": 4,
+    "strategy": 4
+  }
+]

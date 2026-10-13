@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "prettier --write --experimental-cli src/"
+    "format": "prettier --write --experimental-cli src/",
+    "extract:mbti": "node tools/extract-mbti-data.mjs",
+    "shoot:mbti": "node tools/shoot-mbti.mjs",
+    "smoke:mbti": "node tools/smoke-mbti.mjs"
   },
   "dependencies": {
     "pinia": "^4.0.3",
@@ -17,7 +20,9 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
+    "echarts": "^6.1.0",
     "less": "^4.9.1",
+    "playwright-core": "^1.64.0",
     "prettier": "3.9.6",
     "vite": "^8.2.2",
     "vite-plugin-vue-devtools": "^8.2.1"

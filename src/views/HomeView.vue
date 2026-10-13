@@ -15,7 +15,6 @@
 
       <div class="hd-right">
         <span class="hd-btn ghost" @click="copyLink">复制链接</span>
-        <span class="hd-btn ghost" @click="openInNewTab">新窗口</span>
       </div>
     </header>
 
@@ -119,20 +118,14 @@
       </div>
     </div>
 
-    <!-- ===================== iframe 内容区 ===================== -->
-    <div class="iframe-wrap" :class="{ plain: !settings.bordered }">
+    <!-- ===================== 报告内容区 ===================== -->
+    <div class="report-wrap" :class="{ plain: !settings.bordered }">
       <div v-if="loading" class="loading-mask">
         <span class="spinner"></span>
         <span class="loading-text">{{ current }} · {{ currentMeta.cn }} 报告加载中…</span>
       </div>
-      <div class="frame-scaler" :style="scalerStyle">
-        <iframe
-          :key="iframeSrc"
-          :src="iframeSrc"
-          class="mbti-frame"
-          frameborder="0"
-          @load="loading = false"
-        ></iframe>
+      <div class="report-scaler" :style="scalerStyle">
+        <MbtiReport :type="current" @ready="loading = false" />
       </div>
 
       <!-- 沉浸模式下的浮动退出按钮 -->
@@ -148,62 +141,11 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 import { reactive, ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import MbtiReport from '../components/mbti/MbtiReport.vue'
+import { ALL_TYPES as allTypes, META, groupColor } from '../data/mbti/meta'
+
 const Route = useRoute()
 const Router = useRouter()
-
-// ==================== 16 型数据 ====================
-const META = {
-  INTJ: { cn: '建筑师', group: 'NT' },
-  INTP: { cn: '逻辑学家', group: 'NT' },
-  ENTJ: { cn: '指挥官', group: 'NT' },
-  ENTP: { cn: '辩论家', group: 'NT' },
-  INFJ: { cn: '提倡者', group: 'NF' },
-  INFP: { cn: '调停者', group: 'NF' },
-  ENFJ: { cn: '主人公', group: 'NF' },
-  ENFP: { cn: '竞选者', group: 'NF' },
-  ISTJ: { cn: '物流师', group: 'SJ' },
-  ISFJ: { cn: '守卫者', group: 'SJ' },
-  ESTJ: { cn: '总经理', group: 'SJ' },
-  ESFJ: { cn: '执政官', group: 'SJ' },
-  ISTP: { cn: '鉴赏家', group: 'SP' },
-  ISFP: { cn: '探险家', group: 'SP' },
-  ESTP: { cn: '企业家', group: 'SP' },
-  ESFP: { cn: '表演家', group: 'SP' },
-}
-
-// PC 单行时用的 2 字简称（竖排两行：代码 + 简称，宽度永远够）
-const SHORT = {
-  INTJ: '建筑',
-  INTP: '逻辑',
-  ENTJ: '指挥',
-  ENTP: '辩论',
-  INFJ: '提倡',
-  INFP: '调停',
-  ENFJ: '主人',
-  ENFP: '竞选',
-  ISTJ: '物流',
-  ISFJ: '守卫',
-  ESTJ: '经理',
-  ESFJ: '执政',
-  ISTP: '鉴赏',
-  ISFP: '探险',
-  ESTP: '企业',
-  ESFP: '表演',
-}
-
-const GROUP_COLOR = {
-  NT: '#7f5fd0',
-  NF: '#3f8a58',
-  SJ: '#2f7fb8',
-  SP: '#c98a16',
-}
-const groupColor = (code) => GROUP_COLOR[META[code].group] || '#1b6b3a'
-const allTypes = Object.keys(META).map((code) => ({
-  code,
-  cn: META[code].cn,
-  short: SHORT[code] || META[code].cn,
-  group: META[code].group,
-}))
 
 // ==================== 状态 ====================
 const TYPE_KEY = 'mbti_last_type'
@@ -258,7 +200,6 @@ function showToast(text) {
 const panelOpen = ref(true)
 
 const currentMeta = computed(() => META[current.value])
-const iframeSrc = computed(() => `${import.meta.env.BASE_URL}mbti/${current.value}.html`)
 
 const labelModes = [
   { v: 'all', t: '代码+中文' },
@@ -291,7 +232,7 @@ function selectType(code) {
   if (!isPC()) panelOpen.value = false
 }
 function openInNewTab() {
-  window.open(iframeSrc.value, '_blank')
+  window.open(Router.resolve({ query: { ...Route.query, type: current.value } }).href, '_blank')
 }
 function copyLink() {
   const url = location.href
@@ -323,9 +264,10 @@ function pillStyleOf(code) {
 }
 const scalerStyle = computed(() => {
   const z = settings.zoom || 1
+  // 高度交给内容自适应：以前 iframe 自身 100% 撑满，这里改成纵向也按 z 还原，
+  // transform-origin 在左上角，视觉宽高才与 100% 一致
   return {
     width: `${(100 / z).toFixed(4)}%`,
-    height: `${(100 / z).toFixed(4)}%`,
     transform: `scale(${z})`,
   }
 })
@@ -652,26 +594,17 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ===== iframe 内容区 ===== */
-.iframe-wrap {
+/* ===== 报告内容区 ===== */
+.report-wrap {
   position: relative;
   flex: 1;
   min-height: 0;
+  overflow: auto;
   background: #e6f2ea;
+  -webkit-overflow-scrolling: touch;
 
-  .frame-scaler {
-    position: absolute;
-    top: 0;
-    left: 0;
+  .report-scaler {
     transform-origin: 0 0;
-  }
-
-  .mbti-frame {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: #fff;
   }
 
   .loading-mask {
@@ -855,8 +788,8 @@ onBeforeUnmount(() => {
     }
   }
 
-  /* iframe 卡片化（可关） */
-  .iframe-wrap:not(.plain) {
+  /* 报告卡片化（可关） */
+  .report-wrap:not(.plain) {
     margin: 0 16px 14px;
     border: 1px solid #d2e4d6;
     border-radius: 12px;

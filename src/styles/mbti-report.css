@@ -1,0 +1,704 @@
+/**
+ * MBTI 报告样式 —— 由原 16 份 public/mbti/*.html 里的 <style> 合并而来
+ *
+ * 两处关键改动：
+ *   1) 变量从 :root 挪到 .mbti-report —— 以前每个 HTML 是独立文档，:root 互不干扰；
+ *      现在并入主应用挂 :root 会污染整个站点。
+ *   2) 补上 body/html 的规则在旧的独立页面里，现在由 HomeView 负责页面背景。
+ */
+
+.mbti-report {
+  --bg: #f3faf4;
+  --panel: #ffffff;
+  --ink: #1f2d22;
+  --ink-soft: #41544a;
+  --ink-mute: #6b8074;
+  --grid-line: #bcd8c2;
+  --axis: #5a7263;
+  --theme: #1b6b3a;
+  --theme-soft: #dff0e3;
+  --theme-line: #9fd6ad;
+
+  --s-strong: #1b6b3a;
+  --s-bg: #e9f6ec;
+  --s-line: #9fd6ad;
+  --w-strong: #6f8f2e;
+  --w-bg: #eef4e2;
+  --w-line: #c5d79a;
+  --o-strong: #0f7d77;
+  --o-bg: #e3f4f2;
+  --o-line: #9bd9d3;
+  --t-strong: #9a5a2c;
+  --t-bg: #f6efe6;
+  --t-line: #e0c4a6;
+
+  --hi: #c43d2a;
+  --md: #c98a16;
+  --lo: #7a8a82;
+
+  box-sizing: border-box;
+  width: 100%;
+  padding: 22px 18px 48px;
+  line-height: 1.6;
+  color: var(--ink);
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #e3f3e6 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #e6f2ea 0%, transparent 55%),
+    var(--bg);
+}
+
+.mbti-report *,
+.mbti-report *::before,
+.mbti-report *::after {
+  box-sizing: border-box;
+}
+
+.mbti-report__wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* ==================== 页头 ==================== */
+.mbti-report .page-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.mbti-report .page-head .kicker {
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #fff;
+  background: var(--theme);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.mbti-report .page-head h1 {
+  font-size: 29px;
+  margin: 0 0 6px;
+  letter-spacing: 1px;
+  color: #1c3a28;
+}
+.mbti-report .page-head p.sub {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+/* ==================== 人格概要 ==================== */
+.mbti-report .persona {
+  border: 1px solid #d2e4d6;
+  border-top: 4px solid var(--theme);
+  border-radius: 14px;
+  padding: 18px 20px 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f5fbf6 100%);
+  box-shadow: 0 2px 10px rgba(27, 107, 58, 0.05);
+  margin-top: 14px;
+}
+.mbti-report .persona .head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mbti-report .persona h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--theme);
+  letter-spacing: 1px;
+}
+.mbti-report .persona .alias {
+  font-size: 14px;
+  color: var(--ink-mute);
+}
+.mbti-report .persona .quote {
+  font-size: 14px;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin: 10px 0 12px;
+}
+.mbti-report .dim-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.mbti-report .dim {
+  font-size: 12.5px;
+  padding: 3px 11px;
+  border-radius: 6px;
+  background: var(--theme-soft);
+  color: #1b3a26;
+  border: 1px solid #b8dac1;
+  font-weight: 600;
+}
+.mbti-report .persona .desc {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.mbti-report .func-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.mbti-report .func {
+  background: #f7fbf8;
+  border: 1px solid #d9e9dd;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.mbti-report .func .fname {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--theme);
+}
+.mbti-report .func .frole {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-left: 4px;
+}
+.mbti-report .func .fdesc {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+/* ==================== 卡片 / 图表 ==================== */
+.mbti-report .chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+.mbti-report .card {
+  background: var(--panel);
+  border: 1px solid #d2e4d6;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(27, 107, 58, 0.05);
+}
+.mbti-report .card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #1c3a28;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mbti-report .card h3 .tag {
+  font-size: 11px;
+  background: #eaf5ec;
+  color: #1b3a26;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid #cfe0d3;
+}
+.mbti-report .chart {
+  width: 100%;
+  height: 340px;
+}
+.mbti-report .chart--quad {
+  height: 500px;
+}
+
+/* ==================== SWOT ==================== */
+.mbti-report .swot-section {
+  margin-top: 18px;
+}
+.mbti-report .swot-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.mbti-report .swot-title h3 {
+  margin: 0;
+  font-size: 19px;
+  color: #1c3a28;
+}
+.mbti-report .swot-title .sub {
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+.mbti-report .axes-hint {
+  display: flex;
+  justify-content: space-between;
+  max-width: 820px;
+  margin: 0 auto 8px;
+  font-size: 12.5px;
+  color: var(--axis);
+  font-weight: 700;
+}
+.mbti-report .matrix {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mbti-report .matrix::before {
+  content: '';
+  position: absolute;
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  width: 2px;
+  background: var(--grid-line);
+  transform: translateX(-1px);
+  z-index: 0;
+}
+.mbti-report .matrix::after {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  height: 2px;
+  background: var(--grid-line);
+  transform: translateY(-1px);
+  z-index: 0;
+}
+.mbti-report .q {
+  position: relative;
+  z-index: 1;
+  border-radius: 10px;
+  padding: 13px 15px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-c);
+}
+.mbti-report .q h4 {
+  margin: 0 0 8px;
+  font-size: 15.5px;
+  color: var(--strong);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mbti-report .q h4 .en {
+  font-size: 11px;
+  opacity: 0.7;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.mbti-report .q ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mbti-report .q li {
+  font-size: 13.5px;
+  color: var(--ink);
+  padding: 6px 0 6px 18px;
+  position: relative;
+  border-bottom: 1px dashed #e3ede5;
+}
+.mbti-report .q li:last-child {
+  border-bottom: none;
+}
+.mbti-report .q li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  width: 6px;
+  height: 6px;
+  background: var(--strong);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+.mbti-report .q.s {
+  --bg-c: var(--s-bg);
+  --line: var(--s-line);
+  --strong: var(--s-strong);
+}
+.mbti-report .q.w {
+  --bg-c: var(--w-bg);
+  --line: var(--w-line);
+  --strong: var(--w-strong);
+}
+.mbti-report .q.o {
+  --bg-c: var(--o-bg);
+  --line: var(--o-line);
+  --strong: var(--o-strong);
+}
+.mbti-report .q.t {
+  --bg-c: var(--t-bg);
+  --line: var(--t-line);
+  --strong: var(--t-strong);
+}
+
+.mbti-report .prob {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border: 1px solid;
+}
+.mbti-report .prob.hi {
+  background: #fdecea;
+  color: var(--hi);
+  border-color: #f3b8af;
+}
+.mbti-report .prob.md {
+  background: #fdf4dd;
+  color: var(--md);
+  border-color: #ecd18a;
+}
+.mbti-report .prob.lo {
+  background: #eef1ef;
+  color: var(--lo);
+  border-color: #c4cfc9;
+}
+.mbti-report .why {
+  font-size: 12px;
+  color: var(--ink-mute);
+  display: block;
+  margin-top: 1px;
+}
+
+/* ==================== 世界格局矩阵 ==================== */
+.mbti-report .world-section {
+  margin-top: 18px;
+}
+.mbti-report .legend-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+}
+.mbti-report .chip {
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid;
+  background: #fff;
+}
+.mbti-report .chip.good {
+  color: #1b6b3a;
+  border-color: #9fd6ad;
+  background: #eef8f0;
+}
+.mbti-report .chip.goodplus {
+  color: #54681c;
+  border-color: #c5d79a;
+  background: #f4f8e9;
+}
+.mbti-report .chip.double {
+  color: #0c5a55;
+  border-color: #9bd9d3;
+  background: #e6f5f4;
+}
+.mbti-report .chip.neutral {
+  color: #5a6a63;
+  border-color: #c4cfc9;
+  background: #f0f3f1;
+}
+.mbti-report .chip.bad {
+  color: #7c4822;
+  border-color: #e0c4a6;
+  background: #faf3ea;
+}
+
+.mbti-report .quad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+.mbti-report .qc {
+  border-radius: 10px;
+  padding: 12px 13px;
+  border: 1px solid var(--qc-line);
+  background: var(--qc-bg);
+  border-top: 3px solid var(--qc-strong);
+}
+.mbti-report .qc h4 {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  color: var(--qc-strong);
+}
+.mbti-report .qc .cond {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.mbti-report .qc .items {
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.mbti-report .qc .act {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+.mbti-report .qc.core {
+  --qc-strong: #0f7d77;
+  --qc-bg: #e9f6f5;
+  --qc-line: #b9dedb;
+}
+.mbti-report .qc.lever {
+  --qc-strong: #1b6b3a;
+  --qc-bg: #eef8f0;
+  --qc-line: #bfe3c6;
+}
+.mbti-report .qc.bg {
+  --qc-strong: #6a7a72;
+  --qc-bg: #f1f4f2;
+  --qc-line: #cdd7d2;
+}
+.mbti-report .qc.watch {
+  --qc-strong: #9a5a2c;
+  --qc-bg: #faf3ea;
+  --qc-line: #e6cdb4;
+}
+
+/* ==================== 双维度对照表 ==================== */
+.mbti-report table.vars {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  margin-top: 14px;
+  box-shadow: 0 2px 8px rgba(27, 107, 58, 0.05);
+}
+.mbti-report table.vars th {
+  background: #eaf5ec;
+  color: #1b3a26;
+  padding: 9px 10px;
+  text-align: left;
+  border-bottom: 2px solid #cfe0d3;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+.mbti-report table.vars td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e8f0ec;
+  vertical-align: middle;
+}
+.mbti-report table.vars tr:last-child td {
+  border-bottom: none;
+}
+.mbti-report td.vname {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.mbti-report .badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.mbti-report .badge.good {
+  color: #1b6b3a;
+  border-color: #9fd6ad;
+  background: #eef8f0;
+}
+.mbti-report .badge.goodplus {
+  color: #54681c;
+  border-color: #c5d79a;
+  background: #f4f8e9;
+}
+.mbti-report .badge.double {
+  color: #0c5a55;
+  border-color: #9bd9d3;
+  background: #e6f5f4;
+}
+.mbti-report .badge.neutral {
+  color: #5a6a63;
+  border-color: #c4cfc9;
+  background: #f0f3f1;
+}
+.mbti-report .badge.bad {
+  color: #7c4822;
+  border-color: #e0c4a6;
+  background: #faf3ea;
+}
+.mbti-report .mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 150px;
+}
+.mbti-report .mini .track {
+  flex: 1;
+  height: 7px;
+  background: #e8f0ec;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mbti-report .mini .fill {
+  height: 100%;
+  border-radius: 4px;
+}
+.mbti-report .mini .num {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  width: 22px;
+  text-align: right;
+}
+.mbti-report td.pri {
+  font-weight: 800;
+  color: #0c5a55;
+  white-space: nowrap;
+}
+.mbti-report td.quad-tag {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+
+/* ==================== 趋势 / 读图指南 ==================== */
+.mbti-report .world {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 18px;
+}
+.mbti-report .trend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mbti-report .trend {
+  border: 1px solid #d2e4d6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fbfdfb;
+}
+.mbti-report .trend h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #1c3a28;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.mbti-report .trend p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.mbti-report .trend .bar {
+  height: 6px;
+  background: #e3ede5;
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.mbti-report .trend .bar > div {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* ==================== 战略 ==================== */
+.mbti-report .strategy {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.mbti-report .st {
+  background: #fff;
+  border: 1px solid #d2e4d6;
+  border-radius: 10px;
+  padding: 12px;
+  border-top: 3px solid var(--strong);
+}
+.mbti-report .st.so {
+  --strong: var(--s-strong);
+  background: var(--s-bg);
+}
+.mbti-report .st.wo {
+  --strong: var(--w-strong);
+  background: var(--w-bg);
+}
+.mbti-report .st.stt {
+  --strong: var(--o-strong);
+  background: var(--o-bg);
+}
+.mbti-report .st.wt {
+  --strong: var(--t-strong);
+  background: var(--t-bg);
+}
+.mbti-report .st h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--strong);
+}
+.mbti-report .st p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+/* ==================== 终局判断 / 页脚 ==================== */
+.mbti-report .verdict {
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid #d2e4d6;
+  border-left: 4px solid var(--theme);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.mbti-report .verdict h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #1c3a28;
+}
+.mbti-report .verdict p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+.mbti-report .report-foot {
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: 12px;
+  margin-top: 24px;
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 900px) {
+  .mbti-report .chart-grid,
+  .mbti-report .world {
+    grid-template-columns: 1fr;
+  }
+  .mbti-report .strategy,
+  .mbti-report .quad-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mbti-report .func-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mbti-report .chart--quad {
+    height: 440px;
+  }
+  .mbti-report table.vars .mini {
+    min-width: 110px;
+  }
+  .mbti-report .page-head h1 {
+    font-size: 22px;
+  }
+}

@@ -37,3 +37,6 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# 本地验证产物（tools/shoot-mbti.mjs 生成）
+screenshots/
