@@ -141,4 +141,4 @@ jobs:
       # ----------------------------------------------------------
       - name: Health check
         run: |
-          curl -f http://${{ secrets.SSH_HOST }}/ || exit 1
+          curl -f --connect-timeout 10 --max-time 30 http://${{ secrets.SSH_HOST }}/

@@ -14,7 +14,7 @@
       </div>
 
       <div class="hd-right">
-        <span class="hd-btn ghost" @click="copyLink">复制链接1</span>
+        <span class="hd-btn ghost" @click="copyLink">复制链接</span>
       </div>
     </header>
 
