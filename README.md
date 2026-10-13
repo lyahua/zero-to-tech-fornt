@@ -68,3 +68,4 @@ npm run smoke:mbti -- http://localhost:4173                      # 11 项交互�
 
 测试自动推送
 改了服务器配置
+改了github ssh-private-key
