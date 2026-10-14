@@ -44,22 +44,22 @@ jobs:
       # 临时验证：确认变量都能读到
       # 验证完删掉或注释掉
       # ----------------------------------------------------------
-      - name: Debug - Print variables
-        run: |
-          echo "=== Environment Variables (vars) ==="
-          echo "NODE_VERSION=${{ vars.NODE_VERSION }}"
-          echo "DEPLOY_PATH=${{ vars.DEPLOY_PATH }}"
-          echo "VITE_API_BASE=${{ vars.VITE_API_BASE }}"
+      # - name: Debug - Print variables
+      #   run: |
+      #     echo "=== Environment Variables (vars) ==="
+      #     echo "NODE_VERSION=${{ vars.NODE_VERSION }}"
+      #     echo "DEPLOY_PATH=${{ vars.DEPLOY_PATH }}"
+      #     echo "VITE_API_BASE=${{ vars.VITE_API_BASE }}"
 
-          echo ""
-          echo "=== Environment Secrets (secrets) ==="
-          echo "SSH_HOST=${{ secrets.SSH_HOST }}"
-          echo "SSH_USER=${{ secrets.SSH_USER }}"
-          echo "SSH_PRIVATE_KEY exists: ${{ secrets.SSH_PRIVATE_KEY != '' }}"
+      #     echo ""
+      #     echo "=== Environment Secrets (secrets) ==="
+      #     echo "SSH_HOST=${{ secrets.SSH_HOST }}"
+      #     echo "SSH_USER=${{ secrets.SSH_USER }}"
+      #     echo "SSH_PRIVATE_KEY exists: ${{ secrets.SSH_PRIVATE_KEY != '' }}"
 
-          echo ""
-          echo "=== Environment name ==="
-          echo "environment=${{ vars.environment || 'not set' }}"
+      #     echo ""
+      #     echo "=== Environment name ==="
+      #     echo "environment=${{ vars.environment || 'not set' }}"
 
       # ----------------------------------------------------------
       # 步骤 2：安装 Node.js
