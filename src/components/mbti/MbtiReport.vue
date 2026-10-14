@@ -6,7 +6,7 @@
  * 现在样式合并到 styles/mbti-report.css，数据在 src/data/mbti/*.json，
  * 三张图由 charts/ 下的组件按需引入 echarts 绘制。
  */
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import QuadrantChart from './charts/QuadrantChart.vue'
 import RadarChart from './charts/RadarChart.vue'
 import StackChart from './charts/StackChart.vue'
@@ -73,9 +73,26 @@ const trends = computed(() =>
 const guide = computed(() => report.value?.guide || [])
 const persona = computed(() => report.value?.persona || null)
 
+/** 窄屏下表格放不下 6 列，给一句滑动提示（够宽时自动不显示） */
+const tableScrollable = ref(false)
+const tableEl = ref(null)
+function measureTable() {
+  const el = tableEl.value
+  if (!el) return
+  tableScrollable.value = el.scrollWidth > el.clientWidth + 4
+}
+
 function quadOf(v) {
   return quadrantOf(v, report.value?.split || { i: 76, r: 64 })
 }
+
+// 内容渲染完、窗口尺寸变化时重新判断表格是否需要横向滚动
+watch(report, () => nextTick(measureTable))
+onMounted(() => {
+  nextTick(measureTable)
+  window.addEventListener('resize', measureTable)
+})
+onBeforeUnmount(() => window.removeEventListener('resize', measureTable))
 </script>
 
 <template>
@@ -151,38 +168,41 @@ function quadOf(v) {
           </div>
         </div>
 
-        <table class="vars">
-          <thead>
-            <tr>
-              <th>关键变量</th>
-              <th>属性</th>
-              <th>影响强度</th>
-              <th>{{ report.type }} 相关度</th>
-              <th>优先级</th>
-              <th>象限</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="v in varRows" :key="v.n">
-              <td class="vname">{{ v.n }}</td>
-              <td><span class="badge" :class="v.t">{{ TCOLOR[v.t].label }}</span></td>
-              <td>
-                <div class="mini">
-                  <div class="track"><div class="fill" :style="{ width: v.i + '%', background: TCOLOR[v.t].c }"></div></div>
-                  <span class="num">{{ v.i }}</span>
-                </div>
-              </td>
-              <td>
-                <div class="mini">
-                  <div class="track"><div class="fill" :style="{ width: v.r + '%', background: '#0f7d77' }"></div></div>
-                  <span class="num">{{ v.r }}</span>
-                </div>
-              </td>
-              <td class="pri">{{ priority(v) }}</td>
-              <td class="quad-tag">{{ quadOf(v).name }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div ref="tableEl" class="table-scroll">
+          <table class="vars">
+            <thead>
+              <tr>
+                <th>关键变量</th>
+                <th>属性</th>
+                <th>影响强度</th>
+                <th>{{ report.type }} 相关度</th>
+                <th>优先级</th>
+                <th>象限</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="v in varRows" :key="v.n">
+                <td class="vname">{{ v.n }}</td>
+                <td><span class="badge" :class="v.t">{{ TCOLOR[v.t].label }}</span></td>
+                <td>
+                  <div class="mini">
+                    <div class="track"><div class="fill" :style="{ width: v.i + '%', background: TCOLOR[v.t].c }"></div></div>
+                    <span class="num">{{ v.i }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="mini">
+                    <div class="track"><div class="fill" :style="{ width: v.r + '%', background: '#0f7d77' }"></div></div>
+                    <span class="num">{{ v.r }}</span>
+                  </div>
+                </td>
+                <td class="pri">{{ priority(v) }}</td>
+                <td class="quad-tag">{{ quadOf(v).name }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-if="tableScrollable" class="scroll-tip">← 左右滑动查看全部 6 列 →</p>
+        </div>
       </section>
 
       <!-- ==================== 趋势 / 读图指南 ==================== -->

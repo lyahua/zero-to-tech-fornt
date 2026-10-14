@@ -467,15 +467,45 @@
 }
 
 /* ==================== 双维度对照表 ==================== */
+/* 表格外层负责横向滚动：窄屏下表格自然宽度（约 640px）会超出容器，
+   如果不隔离，整页会被撑宽，手机上会跟着页面一起左右晃 —— 极易误触。 */
+.mbti-report .table-scroll {
+  margin-top: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 2px 8px rgba(27, 107, 58, 0.05);
+  scrollbar-width: thin;
+  scrollbar-color: #bcd8c6 transparent;
+}
+.mbti-report .table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.mbti-report .table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.mbti-report .table-scroll::-webkit-scrollbar-thumb {
+  background: #bcd8c6;
+  border-radius: 3px;
+}
+.mbti-report .scroll-tip {
+  margin: 0;
+  padding: 6px 10px 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-mute);
+  border-top: 1px dashed #e3ede5;
+}
+
 .mbti-report table.vars {
   width: 100%;
   border-collapse: collapse;
   background: var(--panel);
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 12px; /* 由 .table-scroll 的 overflow 裁切出圆角 */
   font-size: 13px;
-  margin-top: 14px;
-  box-shadow: 0 2px 8px rgba(27, 107, 58, 0.05);
+  box-shadow: none;
 }
 .mbti-report table.vars th {
   background: #eaf5ec;

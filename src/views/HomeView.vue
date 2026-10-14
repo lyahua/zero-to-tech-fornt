@@ -119,7 +119,13 @@
     </div>
 
     <!-- ===================== 报告内容区 ===================== -->
-    <div class="report-wrap" :class="{ plain: !settings.bordered }">
+    <div
+      ref="wrapEl"
+      class="report-wrap"
+      :class="{ plain: !settings.bordered, scrolled }"
+      tabindex="0"
+      @scroll.passive="onWrapScroll"
+    >
       <div v-if="loading" class="loading-mask">
         <span class="spinner"></span>
         <span class="loading-text">{{ current }} · {{ currentMeta.cn }} 报告加载中…</span>
@@ -201,6 +207,23 @@ const panelOpen = ref(true)
 
 const currentMeta = computed(() => META[current.value])
 
+// ==================== 报告区滚动 ====================
+const wrapEl = ref(null)
+const scrolled = ref(false)
+let scrollRaf = 0
+function onWrapScroll() {
+  if (scrollRaf) return
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = 0
+    scrolled.value = (wrapEl.value?.scrollTop || 0) > 4
+  })
+}
+/** 切类型时回到顶部：内容高度不同，保留旧位置会看到半截 */
+function resetScroll() {
+  scrolled.value = false
+  wrapEl.value?.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+}
+
 const labelModes = [
   { v: 'all', t: '代码+中文' },
   { v: 'code', t: '仅代码' },
@@ -226,6 +249,7 @@ function selectType(code) {
   if (META[code] && code !== current.value) {
     current.value = code
     loading.value = true
+    resetScroll()
     if (settings.remember) localStorage.setItem(TYPE_KEY, code)
     Router.replace({ query: { ...Route.query, type: code } })
   }
@@ -309,6 +333,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  /* dvh 会随移动端地址栏收放而变，正好是我们要的行为；
+     放在 100vh 之后写，不支持 dvh 的浏览器自动落到 vh */
+  height: 100dvh;
   background: #f3faf4;
   overflow: hidden;
 }
@@ -599,12 +626,49 @@ onBeforeUnmount(() => {
   position: relative;
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #e6f2ea;
   -webkit-overflow-scrolling: touch;
+  /* 防止滚到边界后继续滚动触发浏览器的下拉刷新 / 页面级滚动穿透 */
+  overscroll-behavior: contain;
+  /* 滚动条常驻占位，报告内部宽度不会因为滚动条出现/消失而跳动 */
+  scrollbar-gutter: stable;
+
+  /* 细滚动条：标准属性（Firefox）+ webkit 前缀（Chrome/Edge/Safari），两套都写 */
+  scrollbar-width: thin;
+  scrollbar-color: #bcd8c6 transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #bcd8c6;
+    border-radius: 5px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #8fbf9f;
+    background-clip: content-box;
+  }
+
+  /* 可聚焦以支持键盘滚动（PageUp/Down、方向键、空格），焦点框画在内侧不裁内容 */
+  &:focus-visible {
+    outline: 2px solid #1b6b3a;
+    outline-offset: -2px;
+  }
 
   .report-scaler {
     transform-origin: 0 0;
+  }
+
+  /* 滚动后给内容区一个轻微投影，提示「下面还有内容」 */
+  &.scrolled:not(.plain) {
+    box-shadow: inset 0 10px 12px -12px rgba(27, 107, 58, 0.45);
   }
 
   .loading-mask {
@@ -788,13 +852,28 @@ onBeforeUnmount(() => {
     }
   }
 
-  /* 报告卡片化（可关） */
+  /* 报告卡片化（可关）
+     注意：这里绝不能再写 overflow:hidden —— 那样会连滚动一起干掉
+     （border-radius + overflow:auto 本身就能做圆角裁切） */
   .report-wrap:not(.plain) {
     margin: 0 16px 14px;
     border: 1px solid #d2e4d6;
     border-radius: 12px;
-    overflow: hidden;
     box-shadow: 0 2px 8px rgba(27, 107, 58, 0.05);
+  }
+}
+
+/* ===== 降低动效偏好：关掉过渡与动画，避免前庭敏感用户不适 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .mbti-app *,
+  .mbti-app *::before,
+  .mbti-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .report-wrap {
+    scroll-behavior: auto !important;
   }
 }
 </style>
