@@ -3,40 +3,25 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
 node_modules
-.DS_Store
 dist
 dist-ssr
-coverage
 *.local
+package-lock.json
 
-# Editor directories and files
+# 自动生成的类型声明（由 unplugin 生成，npm install 后重建）
+src/types/auto-imports.d.ts
+src/types/components.d.ts
+components.d.ts
+
+# Vite 临时文件
+*.timestamp-*.mjs
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
+.DS_Store
 *.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-*.tsbuildinfo
-
-.eslintcache
-
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-
-# Vitest
-__screenshots__/
-
-# Vite
-*.timestamp-*-*.mjs
-
-# 本地验证产物（tools/shoot-mbti.mjs 生成）
-screenshots/
