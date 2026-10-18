@@ -136,6 +136,15 @@ jobs:
                       sudo nginx -t
                       sudo systemctl reload nginx
 
+            - name: Probe host
+              env:
+                  HOST: ${{ secrets.SSH_HOST }}
+              run: |
+                  echo "len=${#HOST}"
+                  echo -n "$HOST" | sha256sum
+                  # 字母数字换成 *，只保留 : / . - 等结构字符
+                  echo "shape=$(printf '%s' "$HOST" | sed 's/[A-Za-z0-9]/*/g')"
+
             # ----------------------------------------------------------
             # 步骤 7：健康检查
             # ----------------------------------------------------------
@@ -170,12 +179,3 @@ jobs:
 
             #     sudo nginx -t
             #     sudo systemctl reload nginx
-
-            - name: Probe host
-              env:
-                  HOST: ${{ secrets.SSH_HOST }}
-              run: |
-                  echo "len=${#HOST}"
-                  echo -n "$HOST" | sha256sum
-                  # 字母数字换成 *，只保留 : / . - 等结构字符
-                  echo "shape=$(printf '%s' "$HOST" | sed 's/[A-Za-z0-9]/*/g')"
