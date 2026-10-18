@@ -149,28 +149,27 @@ jobs:
             # - name: Deploy (atomic + keep 3)
             #   uses: appleboy/ssh-action@v1
             #   with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  script: |
-                      set -e
+            # host: ${{ secrets.SSH_HOST }}
+            # username: ${{ secrets.SSH_USER }}
+            # key: ${{ secrets.SSH_PRIVATE_KEY }}
+            # script: |
+            #     set -e
 
-                      DEPLOY_PATH="/home/test001/frontend"
-                      RELEASE_DIR="$DEPLOY_PATH/releases/$(date +%Y%m%d-%H%M%S)"
+            #     DEPLOY_PATH="/home/test001/frontend"
+            #     RELEASE_DIR="$DEPLOY_PATH/releases/$(date +%Y%m%d-%H%M%S)"
 
-                      mkdir -p "$RELEASE_DIR"
-                      cp -r /tmp/frontend-upload/dist "$RELEASE_DIR/dist"
+            #     mkdir -p "$RELEASE_DIR"
+            #     cp -r /tmp/frontend-upload/dist "$RELEASE_DIR/dist"
 
-                      ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
+            #     ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
 
-                      rm -rf /tmp/frontend-upload
+            #     rm -rf /tmp/frontend-upload
 
-                      # 保留最近 3 次
-                      ls -dt "$DEPLOY_PATH/releases/"* | tail -n +4 | xargs rm -rf
+            #     # 保留最近 3 次
+            #     ls -dt "$DEPLOY_PATH/releases/"* | tail -n +4 | xargs rm -rf
 
-                      sudo nginx -t
-                      sudo systemctl reload nginx
-
+            #     sudo nginx -t
+            #     sudo systemctl reload nginx
 
             - name: Probe host
               env:
