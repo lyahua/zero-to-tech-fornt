@@ -87,16 +87,16 @@ jobs:
                   VITE_API_BASE: ${{ vars.VITE_API_BASE }}
 
             #调试
-            - name: SSH connection test
-              uses: appleboy/ssh-action@v1
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  script: |
-                      echo "✅ SSH OK"
-                      whoami
-                      pwd
+            # - name: SSH connection test
+            #   uses: appleboy/ssh-action@v1
+            #   with:
+            #       host: ${{ secrets.SSH_HOST }}
+            #       username: ${{ secrets.SSH_USER }}
+            #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+            #       script: |
+            #           echo "✅ SSH OK"
+            #           whoami
+            #           pwd
             #调试
 
             # ----------------------------------------------------------
@@ -132,50 +132,64 @@ jobs:
                       mv /tmp/frontend-release/dist "$RELEASE_DIR/dist"
 
                       ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
+                      rm -rf /tmp/frontend-release
 
                       sudo nginx -t
                       sudo systemctl reload nginx
 
-            - name: Probe host
-              env:
-                  HOST: ${{ secrets.SSH_HOST }}
-              run: |
-                  echo "len=${#HOST}"
-                  echo -n "$HOST" | sha256sum
-                  # 字母数字换成 *，只保留 : / . - 等结构字符
-                  echo "shape=$(printf '%s' "$HOST" | sed 's/[A-Za-z0-9]/*/g')"
-
             # ----------------------------------------------------------
             # 步骤 7：健康检查
+            # URL 必须整体加引号，否则变量里出现空白会被 shell 拆成
+            # 两个参数，多出来的 "/" 会让 curl 以退出码 3 失败。
+            # -o /dev/null 防止把整个 index.html 打进日志，
+            # -w 只输出状态码，-f 保证非 2xx 时退出码非 0。
             # ----------------------------------------------------------
             - name: Health check
               run: |
-                  curl -f --connect-timeout 10 --max-time 30 http://${{ secrets.SSH_HOST }}/
+                  curl -sfL -o /dev/null -w "%{http_code}\n" \
+                      --connect-timeout 10 --max-time 30 \
+                      "http://${{ secrets.SSH_HOST }}/"
 
             # ----------------------------------------------------------
-            # 步骤 8：只保留三个版本
+            # 步骤 8：清理旧版本，只保留最近 3 个
+            # 放在健康检查之后：新版本有问题就直接失败退出，
+            # 旧版本还留着，可以手动把 current 软链切回去。
             # ----------------------------------------------------------
-            # - name: Deploy (atomic + keep 3)
-            #   uses: appleboy/ssh-action@v1
-            #   with:
-            # host: ${{ secrets.SSH_HOST }}
-            # username: ${{ secrets.SSH_USER }}
-            # key: ${{ secrets.SSH_PRIVATE_KEY }}
-            # script: |
-            #     set -e
+            - name: Prune old releases (keep 3)
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script: |
+                      set -e
 
-            #     DEPLOY_PATH="/home/test001/frontend"
-            #     RELEASE_DIR="$DEPLOY_PATH/releases/$(date +%Y%m%d-%H%M%S)"
+                      DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
+                      KEEP=3
 
-            #     mkdir -p "$RELEASE_DIR"
-            #     cp -r /tmp/frontend-upload/dist "$RELEASE_DIR/dist"
+                      # 下面要执行 rm -rf，DEPLOY_PATH 若为空会把目标算到根目录
+                      if [ -z "$DEPLOY_PATH" ] || [ "$DEPLOY_PATH" = "/" ]; then
+                          echo "illegal DEPLOY_PATH: [$DEPLOY_PATH]"
+                          exit 1
+                      fi
 
-            #     ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
+                      mkdir -p "$DEPLOY_PATH/releases"
+                      cd "$DEPLOY_PATH/releases"
 
-            #     rm -rf /tmp/frontend-upload
+                      # 目录名是 YYYYmmdd-HHMMSS，字典序即时间序，倒排后
+                      # 跳过最新 KEEP 个即为待删列表
+                      CURRENT_NAME="$(basename "$(readlink "$DEPLOY_PATH/current" || true)")"
 
-            #     # 保留最近 3 次
-            #     ls -dt "$DEPLOY_PATH/releases/"* | tail -n +4 | xargs rm -rf
+                      # 再排除 current 指向的版本，防止时钟偏差误删线上版本
+                      TO_DELETE="$(ls -1 | sort -r | tail -n +$((KEEP + 1)))"
 
-            #     sudo nginx -t
-            #     sudo systemctl reload nginx
+                      if [ -z "$TO_DELETE" ]; then
+                          echo "nothing to prune (keep=$KEEP, current=$CURRENT_NAME)"
+                          exit 0
+                      fi
+
+                      echo "$TO_DELETE" | grep -vx "$CURRENT_NAME" \
+                          | xargs -r rm -rf --
+
+                      echo "kept:"
+                      ls -1
