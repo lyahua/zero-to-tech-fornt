@@ -17,8 +17,9 @@ module.exports = {
             propList: ['*'],
             // 需要保持 px 的类名（如固定定位、1px 边框）
             selectorBlackList: ['.no-rem'],
-            // 不处理第三方包
-            exclude: /node_modules/,
+            // 不处理第三方包，以及 IDC 大屏引擎（其 px 尺寸是三维 HUD 的绝对布局，
+            // 转 rem 后会随根字号漂移导致栅格错位）
+            exclude: /node_modules|idc-visual-ops/,
         },
     },
 };

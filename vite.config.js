@@ -8,6 +8,13 @@ import { VantResolver } from "unplugin-vue-components/resolvers";
 import Pages from "vite-plugin-pages";
 
 /**
+ * IDC 三维机房引擎（idc-visual-ops）源码目录
+ * 用绝对路径引用，避免把 5.4 万行 three.module.js 复制进本工程；
+ * 换机器时改这一行，或写进 .env.local 的 VITE_IDC_ROOT。
+ */
+const IDC_ROOT = process.env.VITE_IDC_ROOT || "e:/javaFile/idc-visual-ops/src";
+
+/**
  * Vite 构建配置（模板版）
  *
  * 从原项目保留的构建能力：
@@ -80,6 +87,9 @@ export default ({ mode }) => {
         ],
         dirs: ["./src/javascript/tool/**", "./src/javascript/hooks/**"],
         dts: "src/types/auto-imports.d.ts",
+        // IDC 引擎是自带 IIFE 的原生 ES Module，不能被注入自动导入前导码
+        // （插件会把无 import/export 的文件当 CJS，注入 require() 直接报错）
+        exclude: [/idc-visual-ops/, /[\\/]@idc[\\/]/],
       }),
 
       // Vant 按需引入：用到什么打包什么
@@ -99,6 +109,8 @@ export default ({ mode }) => {
     resolve: {
       alias: {
         "@": resolve(__dirname, "./src"),
+        // IDC 引擎（原生 ES Module，Vite 直接编译，无需打包步骤）
+        "@idc": resolve(IDC_ROOT),
       },
     },
 
@@ -148,6 +160,10 @@ export default ({ mode }) => {
     },
 
     server: {
+      fs: {
+        // 引擎源码在工作区之外，dev server 需显式放行
+        allow: [resolve(__dirname), resolve(IDC_ROOT, "..")],
+      },
       host: "0.0.0.0",
       port: Number(env.VITE_PORT) || 3010,
       open: false,
