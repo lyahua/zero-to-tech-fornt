@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
+import { existsSync } from "fs";
 import { resolve } from "path";
 import vue from "@vitejs/plugin-vue";
 import legacyPlugin from "@vitejs/plugin-legacy";
@@ -8,11 +9,44 @@ import { VantResolver } from "unplugin-vue-components/resolvers";
 import Pages from "vite-plugin-pages";
 
 /**
- * IDC 三维机房引擎（idc-visual-ops）源码目录
- * 用绝对路径引用，避免把 5.4 万行 three.module.js 复制进本工程；
- * 换机器时改这一行，或写进 .env.local 的 VITE_IDC_ROOT。
+ * IDC 三维机房引擎（vendored 副本，由 scripts/sync-idc.mjs 从 idc-visual-ops 同步）
+ * engine/ 与 vendor/ 必须保持同级：engine/*.js 用 ../vendor/three.module.js 引用 three。
  */
-const IDC_ROOT = process.env.VITE_IDC_ROOT || "e:/javaFile/idc-visual-ops/src";
+const IDC_ROOT = process.env.VITE_IDC_ROOT || resolve(__dirname, "idc/engine");
+
+/**
+ * IDC 引擎缺失时的兜底：把 @idc/* 解析成空模块，避免构建直接 ENOENT 失败。
+ *
+ * 正常情况下引擎已 vendored 在 idc/（node scripts/sync-idc.mjs 同步），本插件不会命中；
+ * 只有 VITE_IDC_ROOT 指错、或 idc/ 未提交到构建环境时才生效：产物里机房页不渲染，
+ * 但 IdcOverview 有 window.IDC 判空会安全跳过，构建不会中断。
+ */
+function idcEngineFallback(idcRoot) {
+  const root = resolve(idcRoot);
+  const hasEngine = existsSync(resolve(root, "scene3d.js"));
+  const VIRTUAL = "\0idc-fallback:";
+
+  return {
+    name: "idc-engine-fallback",
+    enforce: "pre",
+    buildStart() {
+      if (!hasEngine) {
+        this.warn(`未找到 IDC 引擎（${root}）：@idc/* 按空模块处理，三维机房页不会渲染`);
+      }
+    },
+    resolveId(id) {
+      if (hasEngine) return null;
+      if (id.startsWith("@idc/")) return VIRTUAL + id.slice("@idc/".length);
+      // 别名已展开的情况（vite:alias 先于本插件命中时）
+      if (id.startsWith(root)) return VIRTUAL + id.slice(root.length + 1);
+      return null;
+    },
+    load(id) {
+      if (!id.startsWith(VIRTUAL)) return null;
+      return id.endsWith(".css") ? "/* IDC 引擎缺失：占位样式 */" : "export default {}";
+    },
+  };
+}
 
 /**
  * Vite 构建配置（模板版）
@@ -37,6 +71,8 @@ export default ({ mode }) => {
 
   return defineConfig({
     plugins: [
+      idcEngineFallback(IDC_ROOT),
+
       vue(),
 
       // 文件式路由：src/views 下目录结构即路由表
@@ -89,7 +125,8 @@ export default ({ mode }) => {
         dts: "src/types/auto-imports.d.ts",
         // IDC 引擎是自带 IIFE 的原生 ES Module，不能被注入自动导入前导码
         // （插件会把无 import/export 的文件当 CJS，注入 require() 直接报错）
-        exclude: [/idc-visual-ops/, /[\\/]@idc[\\/]/],
+        // 同步产物见 idc/，其样式另由 postcss.config.cjs 排除 rem 转换
+        exclude: [/[\\/]idc[\\/](engine|vendor)[\\/]/, /[\\/]@idc[\\/]/],
       }),
 
       // Vant 按需引入：用到什么打包什么
@@ -160,10 +197,6 @@ export default ({ mode }) => {
     },
 
     server: {
-      fs: {
-        // 引擎源码在工作区之外，dev server 需显式放行
-        allow: [resolve(__dirname), resolve(IDC_ROOT, "..")],
-      },
       host: "0.0.0.0",
       port: Number(env.VITE_PORT) || 3010,
       open: false,

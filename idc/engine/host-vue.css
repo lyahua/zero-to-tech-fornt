@@ -1,0 +1,116 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later
+ * IDC 可视化运维项目（IDC Visual Ops）· Copyright (c) 2026 99kevindk
+ * 本文件以 AGPL-3.0-or-later 开源；闭源商业集成 / SaaS 托管需另行取得商业授权（见 COMMERCIAL-LICENSE.md）。
+ */
+/* =========================================================================
+ *  src/host-vue.css — 嵌入宿主（Vue / React / 任意 SPA）时的外壳样式补丁
+ *
+ *  为什么需要这个文件：
+ *    base.css 里带 html、body、通配符、#app 等全局选择器，直接引入会打烂宿主布局，
+ *    所以嵌入时 **不能 import base.css**。本文件把 HUD 真正依赖的那部分
+ *    （设计令牌、.hidden、toast、滚动条、button 继承）收进 .idc-host 作用域，
+ *    对宿主零污染。
+ *
+ *  用法：宿主只需 import 两个 CSS —— host-vue.css + styles.css。
+ *  注意：本文件与 styles.css 都必须排除在 postcss-pxtorem / Tailwind 扫描之外，
+ *        否则大屏 px 尺寸会被 rem 基准改掉（见宿主 postcss 配置注释）。
+ * ========================================================================= */
+
+.idc-host {
+  /* ---- 设计令牌（抄自 base.css 的 :root，改为局部变量） ---- */
+  --bg: #05080f;
+  --panel: #0a1524;
+  --panel-2: #08111d;
+  --line: rgba(64, 180, 255, .18);
+  --line-strong: rgba(64, 180, 255, .38);
+  --cyan: #22d3ee;
+  --cyan-2: #35e0ff;
+  --blue: #2f7fe8;
+  --violet: #7c6cf0;
+  --ok: #22c55e;
+  --warn: #f5a524;
+  --crit: #ff4d4f;
+  --off: #5b6b80;
+  --txt: #dce9ff;
+  --txt-2: #8aa0bd;
+  --txt-3: #5f7791;
+
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 0%, #0a1729 0%, #05080f 62%, #03060c 100%);
+  color: var(--txt);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* HUD 用 classList.toggle("hidden") 控制显隐，原由 base.css 提供 */
+.idc-host .hidden { display: none !important; }
+
+/* 三维画布：由宿主组件渲染，尺寸跟随容器 */
+.idc-host > canvas.idc-gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* HUD 覆盖层整体不吃指针，只有面板/控件吃，保证画布可拖拽旋转 */
+.idc-hud-layer { position: absolute; inset: 0; pointer-events: none; }
+.idc-hud-layer .pnl,
+.idc-hud-layer .mbtn,
+.idc-hud-layer .mtab,
+.idc-hud-layer .abtn,
+.idc-hud-layer .sq,
+.idc-hud-layer .tag,
+.idc-hud-layer .al-item,
+.idc-hud-layer .tree-node,
+.idc-hud-layer .rack-sel,
+.idc-hud-layer .search-box,
+.idc-hud-layer .chat-input,
+.idc-hud-layer .chk,
+.idc-hud-layer .ct-bottom,
+.idc-hud-layer .float-card { pointer-events: auto; }
+
+/* Toast：hud.js 的 toast() 写死查 #toast-root，缺失时静默跳过 */
+#toast-root.idc-toast {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.idc-host .toast {
+  background: rgba(9, 22, 38, .94);
+  border: 1px solid var(--line-strong);
+  border-left: 2px solid var(--cyan);
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #dcecff;
+  border-radius: 3px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .6);
+  animation: idcToastIn .22s ease;
+}
+.idc-host .toast.warning { border-left-color: var(--warn); }
+.idc-host .toast.critical { border-left-color: var(--crit); }
+.idc-host .toast.ok { border-left-color: var(--ok); }
+@keyframes idcToastIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* HUD 内控件的 button / input 基础继承（原由 base.css 全局提供） */
+.idc-host button { font-family: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+.idc-host input, .idc-host select, .idc-host textarea { font-family: inherit; }
+.idc-host ul, .idc-host ol { list-style: none; }
+.idc-host h2, .idc-host h3, .idc-host p { margin: 0; }
+
+/* 滚动条只在容器内生效，不改宿主全局 */
+.idc-host ::-webkit-scrollbar { width: 6px; height: 6px; }
+.idc-host ::-webkit-scrollbar-thumb { background: rgba(64, 180, 255, .25); border-radius: 3px; }
+.idc-host ::-webkit-scrollbar-track { background: transparent; }
