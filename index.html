@@ -24,7 +24,8 @@
                 align-items: center;
                 justify-content: center;
                 height: 100%;
-                font-size: 14px;
+                /* 骨架在 rem 脚本执行前渲染，用百分比避开 postcss-pxtorem 换算 */
+                font-size: 87.5%;
                 color: #969799;
             }
         </style>

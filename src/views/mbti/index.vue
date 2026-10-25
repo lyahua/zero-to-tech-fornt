@@ -343,24 +343,7 @@ const scalerStyle = computed(() => {
   };
 });
 
-// ==================== PC 端 rem 钳制 ====================
-// 项目用 amfe-flexible：1rem = clientWidth / 10。PC 上 1920px 宽会让 1rem = 192px，
-// 而 pxtorem 的 rootValue 是 37.5，导致字号/间距被放大约 5 倍（排版错乱的根因）。
-// 这里在 PC 下把根字号固定为 37.5px（即 375 设计稿 1:1），离开本页自动还原。
-const ROOT_PX = 37.5;
-const PC_BREAK = 768;
-const docEl = document.documentElement;
-function syncRootFontSize() {
-  const w = docEl.clientWidth || window.innerWidth;
-  docEl.style.fontSize = w >= PC_BREAK ? `${ROOT_PX}px` : `${w / 10}px`;
-}
-
 onMounted(() => {
-  syncRootFontSize();
-  // 在 amfe-flexible 之后注册，resize 时以本函数结果为准
-  window.addEventListener("resize", syncRootFontSize);
-  window.addEventListener("pageshow", syncRootFontSize);
-
   if (!Route.query.type) {
     Router.replace({ query: { ...Route.query, type: current.value } });
   }
@@ -368,10 +351,6 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKey);
-  window.removeEventListener("resize", syncRootFontSize);
-  window.removeEventListener("pageshow", syncRootFontSize);
-  // 还原为 amfe-flexible 的原始行为，避免影响其他页面
-  docEl.style.fontSize = `${(docEl.clientWidth || window.innerWidth) / 10}px`;
 });
 </script>
 

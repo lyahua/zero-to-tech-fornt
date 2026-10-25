@@ -1,5 +1,5 @@
 <template>
-    <div class="home safe-area-top">
+    <div class="home">
         <AppHeader title="首页" />
 
         <main class="home__body">

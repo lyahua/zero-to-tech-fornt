@@ -11,7 +11,8 @@ module.exports = {
         tailwindcss: {},
         autoprefixer: {},
         'postcss-pxtorem': {
-            // 设计稿按 750px 宽出图 → 1rem = 100px 设计像素
+            // 设计稿按 375px 宽出图，配合 src/utils/rem.js（根字号 = 屏宽 / 10）
+            // 在 375px 屏上 1rem = 37.5px，即 px 值 1:1 还原
             rootValue: 37.5,
             propList: ['*'],
             // 需要保持 px 的类名（如固定定位、1px 边框）
