@@ -19,6 +19,7 @@
         "axios": "^1.7.9",
         "core-js": "^3.40.0",
         "dayjs": "^1.11.13",
+        "echarts": "^6.1.0",
         "element-plus": "^2.14.7",
         "lodash-es": "^4.17.21",
         "pinia": "^3.0.1",
