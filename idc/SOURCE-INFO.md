@@ -16,4 +16,4 @@ three.js 为 MIT（见 `vendor/LICENSE-three.txt`）。
 ## 本工程的相关约定
 - 别名 `@idc` → `./idc/engine`（见 vite.config.js）
 - Tailwind / tsconfig / vite-plugin-pages 均不扫描本目录
-- postcss-pxtorem 已排除本目录：HUD 的 px 是三维大屏绝对布局，转 rem 会错位
+- 本工程只做 PC 端，不做 rem 适配，HUD 的 px 尺寸按原样生效

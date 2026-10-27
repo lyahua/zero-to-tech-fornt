@@ -1,0 +1,28 @@
+/**
+ * 机房可视化暗色主题令牌
+ *
+ * 全局 variables.less 是浅色后台主题，机房大屏需要暗色底，
+ * 两套令牌分开维护，机房页面在 style 块里显式 @import 本文件。
+ */
+
+@idc-bg: #0b1220;
+@idc-panel: #111a2e;
+@idc-panel-soft: #0e1729;
+@idc-border: #1e293b;
+@idc-text: #cbd5e1;
+@idc-text-dim: #64748b;
+@idc-accent: #38bdf8;
+
+.idc-panel {
+    background: @idc-panel;
+    border: 1px solid @idc-border;
+    border-radius: @radius-md;
+}
+
+.panel__title {
+    padding: @gap-md;
+    font-size: @font-md;
+    font-weight: 600;
+    color: @idc-text;
+    border-bottom: 1px solid @idc-border;
+}

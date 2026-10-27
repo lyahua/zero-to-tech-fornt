@@ -24,7 +24,7 @@ const customRoutes = [
 ];
 
 /**
- * H5 默认 hash 模式：静态托管即可，无需服务端 rewrite
+ * 默认 hash 模式：静态托管即可，无需服务端 rewrite
  * 如需 history 模式，改用 createWebHistory() 并在服务端配置 fallback 到 index.html
  */
 const router = createRouter({

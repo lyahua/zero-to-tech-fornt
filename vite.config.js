@@ -5,7 +5,6 @@ import vue from "@vitejs/plugin-vue";
 import legacyPlugin from "@vitejs/plugin-legacy";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
-import { VantResolver } from "unplugin-vue-components/resolvers";
 import Pages from "vite-plugin-pages";
 
 /**
@@ -56,14 +55,14 @@ function idcEngineFallback(idcRoot) {
  * - legacy 插件（浏览器兼容，产物自动打 modern/legacy 两套）
  * - 文件式路由 vite-plugin-pages
  * - Vue API / 工具函数自动导入
- * - Vant 组件按需引入
- * - rem 适配（postcss-pxtorem，见 postcss.config.cjs）
  * - 生产分包 manualChunks
  *
  * 已剔除（原项目中的厂商耦合）：
  * - vite-plugin-resolve-externals 的 Amap 映射（高德地图，业务专属）
  * - NutUI / ElementPlus / AntDesignVue 三个 resolver（原项目多 UI 库并存）
  * - nutui 的 scss 变量自动注入
+ *
+ * 本项目只做 PC 端：不含 Vant、不做 rem 适配，尺寸一律按 px 书写。
  */
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd());
@@ -104,41 +103,25 @@ export default ({ mode }) => {
             dayjs: [["default", "dayjs"]],
             qs: [["default", "qs"]],
             "lodash-es": [["default", "_"]],
-            // Vant 只自动导入「函数式 API」（showToast 等）。
-            // 组件由下面的 VantResolver 负责，不要在这里加 ["default", "Vant"]，
-            // 那会把整个 Vant 包（含 Node 端代码）暴露为全局变量并破坏 tree-shaking。
-            // ★ 函数式 API 只自动导入 JS，不含样式 —— 样式需在 main.js 手动引
-            //   vant/es/<component>/style，原因见 main.js 中的注释。
-            vant: [
-              "showToast",
-              "showLoadingToast",
-              "showSuccessToast",
-              "showFailToast",
-              "closeToast",
-              "showDialog",
-              "closeDialog",
-              "showImagePreview",
-            ],
           },
         ],
         dirs: ["./src/javascript/tool/**", "./src/javascript/hooks/**"],
         dts: "src/types/auto-imports.d.ts",
         // IDC 引擎是自带 IIFE 的原生 ES Module，不能被注入自动导入前导码
         // （插件会把无 import/export 的文件当 CJS，注入 require() 直接报错）
-        // 同步产物见 idc/，其样式另由 postcss.config.cjs 排除 rem 转换
+        // 同步产物见 idc/
         exclude: [/[\\/]idc[\\/](engine|vendor)[\\/]/, /[\\/]@idc[\\/]/],
       }),
 
-      // Vant 按需引入：用到什么打包什么
+      // 本地组件自动注册：用到什么打包什么
       Components({
         dirs: ["src/components"],
         dts: "src/types/components.d.ts",
-        resolvers: [VantResolver({ style: "css" })],
       }),
 
       // 浏览器兼容：自动产出 modern + legacy 两套产物并注入 html
       legacyPlugin({
-        targets: ["> 1%", "not dead", "Android > 5", "iOS > 10"],
+        targets: ["> 1%", "not dead", "last 2 Chrome versions", "Firefox ESR"],
         additionalLegacyPolyfills: ["regenerator-runtime/runtime"],
       }),
     ],

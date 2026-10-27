@@ -21,6 +21,8 @@ import AppHeader from '@/components/layout/AppHeader.vue';
 const TITLES = {
     idc: 'IDC 三维机房总览',
     'idc-floorplan': 'IDC 机房平面视图',
+    'idc-map': 'IDC 全国机房地图',
+    'idc-deploy': 'IDC 机房平面布置图',
     mbti: 'MBTI · SWOT 可视化',
     test: '表格表单测试',
 };

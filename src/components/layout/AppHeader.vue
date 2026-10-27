@@ -8,27 +8,14 @@
 <script setup>
 /**
  * 页面头部
- * 固定高度 + 安全区适配，返回按钮按路由栈自动决定是否展示
+ * 固定高度 + 标题居中，右侧内容通过 right 插槽传入
  */
-import { useRouter } from 'vue-router';
-
 defineProps({
     title: {
         type: String,
         default: '',
     },
 });
-
-const router = useRouter();
-
-const goBack = () => {
-    // 有历史栈就后退，直接进入首页时回落到首页
-    if (window.history.state?.back) {
-        router.back();
-    } else {
-        router.push('/');
-    }
-};
 </script>
 
 <style scoped lang="less">
@@ -38,8 +25,8 @@ const goBack = () => {
     z-index: @z-header;
     display: flex;
     align-items: center;
-    height: 44px;
-    padding: 0 @gap-md;
+    height: 56px;
+    padding: 0 @gap-lg;
     background: @background-white;
     border-bottom: 1px solid @border-color;
 
@@ -47,7 +34,6 @@ const goBack = () => {
         flex: 1;
         font-size: @font-lg;
         font-weight: 500;
-        text-align: center;
     }
 }
 </style>

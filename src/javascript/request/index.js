@@ -7,7 +7,7 @@
  * get(url, config)，是一处隐蔽的坑，迁移时已修正。
  */
 import axios from 'axios';
-import { showToast } from 'vant';
+import { ElMessage } from 'element-plus';
 
 const request = axios.create({
     baseURL: import.meta.env.VITE_API_BASE || '/api',
@@ -51,9 +51,9 @@ request.interceptors.response.use(
         if (res.code === 200 || res.success === true) return res.data ?? res;
 
         if (CODE_WHITE_LIST.includes(String(res.code))) {
-            showToast(res.message || '请求失败');
+            ElMessage.error(res.message || '请求失败');
         } else {
-            showToast('系统繁忙，请稍后重试');
+            ElMessage.error('系统繁忙，请稍后重试');
         }
 
         return Promise.reject(new Error(res.message || 'Request Error'));
@@ -86,7 +86,7 @@ request.interceptors.response.use(
             message = '请求超时，请检查网络';
         }
 
-        showToast(message);
+        ElMessage.error(message);
         return Promise.reject(error);
     }
 );

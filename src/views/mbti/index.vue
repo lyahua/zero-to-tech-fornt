@@ -218,7 +218,6 @@ const allTypes = Object.keys(META).map((code) => ({
 // ==================== 状态 ====================
 const TYPE_KEY = "mbti_last_type";
 const SET_KEY = "mbti_settings";
-const isPC = () => window.matchMedia("(min-width: 768px)").matches;
 
 const defaultSettings = {
   chipLabel: "all", // all | code | cn
@@ -301,7 +300,7 @@ function selectType(code) {
     if (settings.remember) localStorage.setItem(TYPE_KEY, code);
     Router.replace({ query: { ...Route.query, type: code } });
   }
-  if (!isPC()) panelOpen.value = false;
+  panelOpen.value = false;
 }
 function openInNewTab() {
   window.open(iframeSrc.value, "_blank");
@@ -477,7 +476,6 @@ onBeforeUnmount(() => {
   padding: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 
   &::-webkit-scrollbar {

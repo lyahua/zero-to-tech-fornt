@@ -1,6 +1,8 @@
-# Vue3 H5 项目模板
+# Vue3 PC 端项目模板
 
-面向**移动端 H5 / 企业内嵌 WebView** 场景的 Vue3 项目模板。由一个已交付的大型业务项目剥离重构而成——**保留完整的 Vite 构建与打包链路，剔除厂商私有包与业务页面**。
+面向 **PC 端**（后台管理 / 可视化大屏）场景的 Vue3 项目模板。由一个已交付的大型业务项目剥离重构而成——**保留完整的 Vite 构建与打包链路，剔除厂商私有包与业务页面**。
+
+> 本项目只做 PC 端：不引入 Vant，不做 rem 适配，尺寸一律按 px 书写。
 
 ---
 
@@ -38,8 +40,8 @@ npm run build
 | 浏览器兼容 | `@vitejs/plugin-legacy`，自动产出 modern + legacy 两套产物 |
 | 文件式路由 | `vite-plugin-pages` |
 | 自动导入 | `unplugin-auto-import`（Vue API + 工具函数） |
-| 组件按需引入 | `unplugin-vue-components` + `VantResolver` |
-| 移动端适配 | `postcss-pxtorem`（750px 设计稿 → rem） |
+| 组件自动注册 | `unplugin-vue-components`（`src/components` 下组件免 import） |
+| UI 组件库 | Element Plus（PC 端，全局注册） |
 | 样式预处理 | Tailwind + Less + autoprefixer |
 | 生产分包 | `manualChunks` 拆分 Vue 全家桶与 vendor |
 | 多环境 | `.env.development` / `.env.production`，dev 走 proxy |
@@ -53,7 +55,7 @@ npm run build
 | `gdt-jsapi`、`dingtalk-jsapi` | 特定 IM 容器，业务专属 |
 | `vuex` | 与 pinia 并存，实际未用 |
 | `express` | 前端项目引入服务端框架 |
-| `nutui` / `element-plus` / `ant-design-vue` | 多 UI 库并存，本模板统一用 Vant |
+| `vant` / `nutui` / `ant-design-vue` | 移动端 UI 库，本项目只做 PC 端，统一用 Element Plus |
 | `tinymce` / `md-editor-v3` / `vue-element-plus-x` | 富文本业务专属 |
 | `xe-utils` / `mockjs` / `@vue-flow/core` / `mui-player` | 业务专属 |
 | `@better-scroll/*`（3 个包） | 业务专属 |
@@ -62,7 +64,7 @@ npm run build
 | `vite-plugin-resolve-externals`（Amap） | 高德地图 externals 映射 |
 | 原 `src/views` 全部页面 | 业务代码，含 AI 表单 / MBTI / 表格等 |
 
-依赖从 **57 个降到 27 个**。
+依赖从 **57 个降到 25 个**。
 
 ---
 
@@ -71,7 +73,7 @@ npm run build
 ```
 ├── index.html                    入口 HTML（含首屏骨架）
 ├── vite.config.js                构建配置主入口
-├── postcss.config.cjs            rem 换算 + tailwind + autoprefixer
+├── postcss.config.cjs            tailwind + autoprefixer
 ├── tailwind.config.cjs           语义化设计令牌
 ├── tsconfig.json                 TS 配置
 │
@@ -101,7 +103,7 @@ npm run build
     │
     ├── styles/
     │   ├── variables.less        设计令牌
-    │   └── global.less           reset + 基础排版 + 安全区
+    │   └── global.less           reset + 基础排版
     │
     ├── utils/                    格式化、环境判断
     └── types/env.d.ts            环境变量与 RouteMeta 类型声明
@@ -128,8 +130,7 @@ npm run build
 无需 `import` 即可使用：
 
 - **Vue API**：`ref`、`computed`、`watch`、`useRoute`、`useRouter`...
-- **Vant 组件**：`<van-button>`、`<van-cell>` 直接写
-- **Vant 函数**：`showToast`、`showSuccessToast`...
+- **本地组件**：`src/components` 下的组件直接写标签，无需 import
 - **工具函数**：`src/javascript/tool/` 与 `src/javascript/hooks/` 的**具名导出**
 
 > hooks 里的 `export default` 需要手动 import：
@@ -152,16 +153,10 @@ npm run build
 
 **换肤只需改 `variables.less` 一个文件**，不会漏改。
 
-### 4. rem 适配
+### 4. 尺寸单位
 
-- 设计稿按 **750px** 宽出图
-- `postcss-pxtorem` 自动换算（`rootValue: 37.5`，即 1rem = 100px 设计像素）
-- **只对本项目 CSS 换算**（`exclude: /node_modules/`）
-  原因：Vant 4.10 的组件尺寸全写在 `:root` 的 CSS 变量里
-  （如 `--van-button-default-height: 44px`），对 node_modules 也换算会让这些变量变成 rem，
-  再叠加 Vant 内部的 `1.2em` / `calc()` 相对计算，最终尺寸错乱
-- 需要保持 px 的类名加 `no-rem`
-- `index.html` 的 viewport 已锁定 `user-scalable=no`
+只做 PC 端，**一律按 px 书写**，没有 rem/vw 换算链路。
+需要自适应的布局用 flex / grid 或 Element Plus 的栅格，不要靠单位换算缩放。
 
 ### 5. 请求层
 
@@ -225,13 +220,13 @@ const r2 = await userApi.login({ username, password });
 
 ## 技术栈
 
-**运行时**：Vue 3.5 · Vue Router 4 · Pinia 2 · Vant 4（按需引入）· Axios 1.7 · Dayjs · qs
+**运行时**：Vue 3.5 · Vue Router 4 · Pinia 3 · Element Plus 2.14（全局注册）· ECharts 6.1 · Axios 1.7 · Dayjs · qs
 
-**构建**：Vite 5 · TypeScript 5 · PostCSS（pxtorem + tailwind）· vite-plugin-pages · @vitejs/plugin-legacy
+**构建**：Vite 5 · TypeScript 5 · PostCSS（tailwind + autoprefixer）· vite-plugin-pages · @vitejs/plugin-legacy
 
 ---
 
-## 三个必须知道的坑
+## 两个必须知道的坑
 
 ### 1. 不要在业务代码里 `import ... from 'vite'`
 
@@ -245,38 +240,8 @@ import { VERSION } from 'vite';
 console.log(__VITE_VERSION__);
 ```
 
-### 2. Vant 的 default 导出没有 `use` 方法
-
-```js
-// ❌ TypeError: Vant.use is not a function
-import Vant from 'vant';
-Vant.use(Lazyload);
-
-// ✅ Lazyload 本身就是 Vue 插件，直接交给 app
-import { Lazyload } from 'vant';
-app.use(Lazyload);
-```
-
-### 3. 私有源包会让团队装不上
+### 2. 私有源包会让团队装不上
 
 原项目的 `@gtja/GTJABridge`、`@gtja/git-commit-msg-linter` 来自内网私有源，
 其他成员 `npm install` 会直接失败。**模板不要引入私有源包**——
 确有需要时用 `optionalDependencies` 或在文档中写明安装前置条件。
-
----
-
-## 接入原生容器（如企业 IM WebView）
-
-需要调用原生能力（相册、文件、返回手势等）时，
-**必须做能力检测 + Web 兜底**，绝不能让原生 API 缺失导致白屏：
-
-```js
-// 检测能力是否存在
-if (typeof window.webkit?.messageHandlers?.postMessage === 'function') {
-    // 原生环境
-} else {
-    // 普通浏览器，降级为 Web 实现
-}
-```
-
-封装建议放在 `src/javascript/hooks/useNative.js`，业务组件不感知容器差异。

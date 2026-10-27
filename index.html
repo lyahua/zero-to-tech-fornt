@@ -3,12 +3,6 @@
     <head>
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-        />
-        <meta name="format-detection" content="telephone=no, email=no, address=no" />
-        <meta name="theme-color" content="#ffffff" />
         <title>%VITE_APP_TITLE%</title>
         <style>
             /* 首屏骨架：应用挂载前展示，避免白屏闪烁 */
@@ -24,9 +18,8 @@
                 align-items: center;
                 justify-content: center;
                 height: 100%;
-                /* 骨架在 rem 脚本执行前渲染，用百分比避开 postcss-pxtorem 换算 */
-                font-size: 87.5%;
-                color: #969799;
+                font-size: 14px;
+                color: #909399;
             }
         </style>
     </head>
