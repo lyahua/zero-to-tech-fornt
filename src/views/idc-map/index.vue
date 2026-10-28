@@ -101,20 +101,10 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 0 @gap-md @gap-md;
+    padding: @gap-sm @gap-md @gap-md;
     background: @idc-bg;
     // 页面按 100vh 设计，任何子项溢出都不该顶出页面级滚动条
     overflow: hidden;
-
-    // 顶边整幅品牌线：红色唯一可以放心铺满宽度的位置，
-    // 因为它在标题之上、不属于任何数据面板，不会被读成告警区
-    &::before {
-        content: '';
-        flex: none;
-        height: 2px;
-        margin: 0 -@gap-md @gap-sm;
-        background: linear-gradient(90deg, @idc-brand-bright, @idc-brand 30%, @idc-brand-deep 65%, fade(@idc-brand-deep, 5%));
-    }
 
     &__head {
         display: flex;
@@ -122,8 +112,6 @@ onBeforeUnmount(() => {
         height: 56px;
         flex: none;
         padding-bottom: @gap-sm;
-        border-bottom: 1px solid transparent;
-        border-image: linear-gradient(90deg, @idc-brand-bright, @idc-brand 20%, @idc-brand-deep 48%, fade(@idc-brand-deep, 5%)) 1;
     }
 
     &__title {

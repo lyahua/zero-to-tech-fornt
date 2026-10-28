@@ -112,20 +112,28 @@ const kpiItems = computed<KpiItem[]>(() => {
     const p = plan.value;
     const online = p.racks.filter(r => r.status !== 'offline');
     return [
-        { label: '所属站点', value: p.siteName, color: '#38bdf8' },
-        { label: '机柜', value: p.racks.length, unit: ' 台', color: '#38bdf8' },
+        { label: '所属站点', value: p.siteName, color: '#38bdf8', icon: 'location' },
+        { label: '机柜', value: p.racks.length, unit: ' 台', color: '#38bdf8', icon: 'rack' },
         {
             label: '在线',
             value: online.length,
             unit: ' 台',
             color: online.length === p.racks.length ? '#22c55e' : '#eab308',
+            icon: 'check',
         },
-        { label: 'U 位', value: `${p.racks.reduce((s, r) => s + r.uUsed, 0)}`, unit: ' U', color: '#8b5cf6' },
+        {
+            label: 'U 位',
+            value: `${p.racks.reduce((s, r) => s + r.uUsed, 0)}`,
+            unit: ' U',
+            color: '#8b5cf6',
+            icon: 'gauge',
+        },
         {
             label: '总功率',
             value: Math.round(online.reduce((s, r) => s + r.powerKw, 0)),
             unit: ' kW',
             color: '#22c55e',
+            icon: 'bolt',
         },
         {
             label: '平均进风',
@@ -134,12 +142,14 @@ const kpiItems = computed<KpiItem[]>(() => {
                 : 0,
             unit: ' ℃',
             color: '#f97316',
+            icon: 'temp',
         },
         {
             label: '告警机柜',
             value: p.racks.filter(r => r.status === 'alarm').length,
             unit: ' 台',
             color: '#ef4444',
+            icon: 'warning',
         },
     ];
 });
@@ -189,17 +199,8 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 0 @gap-md @gap-md;
+    padding: @gap-sm @gap-md @gap-md;
     background: @idc-bg;
-
-    // 与全国地图页保持一致的顶边品牌线，两页来回跳转时头部才连得上
-    &::before {
-        content: '';
-        flex: none;
-        height: 2px;
-        margin: 0 -@gap-md @gap-sm;
-        background: linear-gradient(90deg, @idc-brand-bright, @idc-brand 30%, @idc-brand-deep 65%, fade(@idc-brand-deep, 5%));
-    }
 
     &__head {
         display: flex;
@@ -207,8 +208,6 @@ onBeforeUnmount(() => {
         height: 56px;
         flex: none;
         padding-bottom: @gap-sm;
-        border-bottom: 1px solid transparent;
-        border-image: linear-gradient(90deg, @idc-brand-bright, @idc-brand 20%, @idc-brand-deep 48%, fade(@idc-brand-deep, 5%)) 1;
     }
 
     &__title {
