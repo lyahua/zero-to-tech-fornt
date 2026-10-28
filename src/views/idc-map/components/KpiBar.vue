@@ -75,6 +75,9 @@ const items = computed(() => {
         padding: @gap-md;
         background:
             radial-gradient(120% 90% at 12% 0%, fade(@idc-panel, 0%) 40%, fade(@idc-bg, 55%) 100%),
+            radial-gradient(90% 120% at 100% 100%, fade(@idc-accent, 16%), transparent 62%),
+            repeating-linear-gradient(0deg, fade(@idc-accent, 5%) 0 1px, transparent 1px 12px),
+            repeating-linear-gradient(90deg, fade(@idc-accent, 5%) 0 1px, transparent 1px 12px),
             linear-gradient(180deg, lighten(@idc-panel, 5%), @idc-panel 55%, darken(@idc-panel, 3%));
         border: 1px solid @idc-border;
         border-left: 3px solid var(--kpi-color);
@@ -91,6 +94,31 @@ const items = computed(() => {
             border-top-color 0.2s,
             border-right-color 0.2s,
             border-bottom-color 0.2s;
+
+        // 角标线只做「仪表框」的暗示，只用一组对角，四角都画会抢数值
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        &::before {
+            top: 6px;
+            right: 6px;
+            border-top: 1px solid var(--kpi-color);
+            border-right: 1px solid var(--kpi-color);
+        }
+
+        &::after {
+            bottom: 6px;
+            left: 6px;
+            border-bottom: 1px solid var(--kpi-color);
+            border-left: 1px solid var(--kpi-color);
+        }
 
         // hover 抬升 2px 并把投影推远，读成「被拿起来」；
         // 只改上右下三边，border-color 会连左侧语义竖条一起覆盖掉

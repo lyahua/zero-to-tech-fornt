@@ -13,7 +13,17 @@
                 <stop offset="100%" stop-color="currentColor" stop-opacity="0.3" />
             </linearGradient>
         </defs>
-        <path v-for="d in paths" :key="d" :d="d" :style="{ stroke: `url(#${gid})` }" />
+        <!-- 侧面：整条粗描边下移，只有下半圈露在正面之外，读成图标的厚度 -->
+        <g class="kpi-icon__side" transform="translate(0,1.4)">
+            <path v-for="d in paths" :key="'s' + d" :d="d" />
+        </g>
+        <g class="kpi-icon__face">
+            <path v-for="d in paths" :key="d" :d="d" :style="{ stroke: `url(#${gid})` }" />
+        </g>
+        <!-- 顶棱：整体上移的极细亮线，勾出倒角被顶光照到的那条棱 -->
+        <g class="kpi-icon__rim" transform="translate(0,-0.7)">
+            <path v-for="d in paths" :key="'r' + d" :d="d" />
+        </g>
     </svg>
 </template>
 
@@ -76,5 +86,17 @@ const gid = `kpi-ico-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
     stroke-width: 1.6;
     stroke-linecap: round;
     stroke-linejoin: round;
+
+    // 侧面比正面粗，多出的那圈暗边落在正面之外就成了厚度
+    .kpi-icon__side {
+        stroke: #04080f;
+        stroke-width: 3;
+    }
+
+    // 顶棱必须极细，粗了会把渐变正面盖掉、读成白色描边
+    .kpi-icon__rim {
+        stroke: fade(#ffffff, 40%);
+        stroke-width: 0.55;
+    }
 }
 </style>
