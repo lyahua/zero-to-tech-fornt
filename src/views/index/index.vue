@@ -13,19 +13,10 @@
 
 <script setup>
 /**
- * 首页 = 系统菜单入口，菜单项由实际注册的路由生成，新增 views 页面后无需改本页
+ * 首页 = 系统菜单入口，菜单项由实际注册的路由生成，新增页面只需在路由表写一次 meta.title
  */
 import { useRouter } from 'vue-router';
 import AppHeader from '@/components/layout/AppHeader.vue';
-
-const TITLES = {
-    idc: 'IDC 三维机房总览',
-    'idc-floorplan': 'IDC 机房平面视图',
-    'idc-map': 'IDC 全国机房地图',
-    'idc-deploy': 'IDC 机房平面布置图',
-    mbti: 'MBTI · SWOT 可视化',
-    test: '表格表单测试',
-};
 
 /** 暂不对外提供的入口，只移出菜单，路由本身保留（仍可用 URL 直达） */
 const HIDDEN = ['idc', 'mbti', 'test'];
@@ -34,7 +25,7 @@ const router = useRouter();
 const menus = router
     .getRoutes()
     .filter(r => r.name && r.path !== '/' && !HIDDEN.includes(String(r.name)))
-    .map(r => ({ path: r.path, title: TITLES[r.name] || String(r.name) }))
+    .map(r => ({ path: r.path, title: r.meta.title || String(r.name) }))
     .sort((a, b) => a.path.localeCompare(b.path));
 </script>
 

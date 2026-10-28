@@ -5,7 +5,6 @@ import vue from "@vitejs/plugin-vue";
 import legacyPlugin from "@vitejs/plugin-legacy";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
-import Pages from "vite-plugin-pages";
 
 /**
  * IDC 三维机房引擎（vendored 副本，由 scripts/sync-idc.mjs 从 idc-visual-ops 同步）
@@ -53,7 +52,6 @@ function idcEngineFallback(idcRoot) {
  * 从原项目保留的构建能力：
  * - vue SFC 编译
  * - legacy 插件（浏览器兼容，产物自动打 modern/legacy 两套）
- * - 文件式路由 vite-plugin-pages
  * - Vue API / 工具函数自动导入
  * - 生产分包 manualChunks
  *
@@ -73,24 +71,6 @@ export default ({ mode }) => {
       idcEngineFallback(IDC_ROOT),
 
       vue(),
-
-      // 文件式路由：src/views 下目录结构即路由表
-      Pages({
-        dirs: "src/views",
-        extensions: ["vue"],
-        ignore: ["**/_*/**/*"],
-        exclude: ["**/components/*.vue"],
-        extendRoute(route) {
-          const keepAliveList = ["home"];
-          return {
-            ...route,
-            meta: {
-              title: route.path === "/" ? "首页" : undefined,
-              keepAlive: keepAliveList.includes(String(route.name)),
-            },
-          };
-        },
-      }),
 
       // 自动导入：Vue API + 常用工具，无需 import
       AutoImport({
