@@ -1,0 +1,16 @@
+@import "src/styles/variables.less";
+@import "src/styles/idc-dark.less";
+
+.probe {
+    c: @idc-brand;
+    deep: @idc-brand-deep;
+    bright: @idc-brand-bright;
+    shadow: fade(@idc-brand, 45%);
+    hoverBorder: fade(@idc-brand, 55%);
+    hoverRoom: fade(@idc-brand, 65%);
+    tail: fade(@idc-brand-deep, 5%);
+    topline: linear-gradient(90deg, @idc-brand-bright, @idc-brand 30%, @idc-brand-deep 65%, fade(@idc-brand-deep, 5%));
+    headline: linear-gradient(90deg, @idc-brand-bright, @idc-brand 20%, @idc-brand-deep 48%, fade(@idc-brand-deep, 5%));
+    titlebar: linear-gradient(180deg, @idc-brand-bright, @idc-brand, @idc-brand-deep);
+    marked: linear-gradient(90deg, @idc-brand, @idc-gold);
+}

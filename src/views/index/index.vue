@@ -27,10 +27,13 @@ const TITLES = {
     test: '表格表单测试',
 };
 
+/** 暂不对外提供的入口，只移出菜单，路由本身保留（仍可用 URL 直达） */
+const HIDDEN = ['idc', 'mbti', 'test'];
+
 const router = useRouter();
 const menus = router
     .getRoutes()
-    .filter(r => r.name && r.path !== '/')
+    .filter(r => r.name && r.path !== '/' && !HIDDEN.includes(String(r.name)))
     .map(r => ({ path: r.path, title: TITLES[r.name] || String(r.name) }))
     .sort((a, b) => a.path.localeCompare(b.path));
 </script>

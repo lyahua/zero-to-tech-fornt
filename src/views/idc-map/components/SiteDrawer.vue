@@ -129,14 +129,25 @@ const stats = computed(() => {
         border-radius: @radius-sm;
         font-size: @font-sm;
         cursor: pointer;
+        transition: border-color 0.2s;
 
         & + & {
             margin-top: @gap-sm;
         }
 
         &:hover {
-            border-color: @idc-accent;
+            border-color: fade(@idc-brand, 65%);
+
+            .site-drawer__arrow {
+                color: @idc-brand;
+                transform: translateX(2px);
+            }
         }
+    }
+
+    &__arrow {
+        color: @idc-text-dim;
+        transition: color 0.2s, transform 0.2s;
     }
 
     &__dot {

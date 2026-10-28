@@ -13,16 +13,49 @@
 @idc-text-dim: #64748b;
 @idc-accent: #38bdf8;
 
+/**
+ * 品牌色与荣誉色
+ *
+ * 品牌红只用于「与数据无关的装饰」（头部横线、面板顶边高光、标题竖条、
+ * 刻度线、hover 反馈）和「荣誉标记的衬底」，不参与任何底色与数据编码：
+ * 它与 STATUS_COLOR.alarm(#ef4444) 色相几乎重合，一旦进入状态或温度编码，
+ * 「红色深浅 = 严重程度」立刻失效，同一机柜在地图和平面图上还会互相矛盾。
+ * 金色负责「好」（TOP1、核心站点），品牌红负责「庄重」，
+ * 小面积处（KPI 下划线、核心站点发光）必须与金色成对，单独出现会偏棕显脏。
+ */
+@idc-brand: #c54b4d;
+// deep/bright 一律从 brand 派生：以后换色号只动 brand 一行，所有渐变自动跟随
+@idc-brand-deep: darken(@idc-brand, 14%);
+@idc-brand-bright: lighten(@idc-brand, 12%);
+@idc-gold: #d4a24c;
+@idc-gold-bright: #f0c674;
+
 .idc-panel {
     background: @idc-panel;
     border: 1px solid @idc-border;
     border-radius: @radius-md;
+    // 顶边一道极窄高光，只做起分层作用，不是背景色
+    box-shadow: inset 0 1px 0 fade(@idc-brand, 45%);
 }
 
 .panel__title {
+    position: relative;
     padding: @gap-md;
+    padding-left: @gap-md + 8px;
     font-size: @font-md;
     font-weight: 600;
     color: @idc-text;
     border-bottom: 1px solid @idc-border;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: @gap-md;
+        width: 2px;
+        height: 12px;
+        margin-top: -6px;
+        border-radius: 1px;
+        background: linear-gradient(180deg, @idc-brand-bright, @idc-brand, @idc-brand-deep);
+    }
 }

@@ -35,6 +35,14 @@ defineProps<{ items: KpiItem[] }>();
         border: 1px solid @idc-border;
         border-left: 3px solid var(--kpi-color, @idc-accent);
         border-radius: @radius-md;
+        transition: border-top-color 0.2s, border-right-color 0.2s, border-bottom-color 0.2s;
+
+        // hover 只改上右下三边：border-color 会连左侧语义竖条一起覆盖掉
+        &:hover {
+            border-top-color: fade(@idc-brand, 55%);
+            border-right-color: fade(@idc-brand, 55%);
+            border-bottom-color: fade(@idc-brand, 55%);
+        }
     }
 
     &__label {

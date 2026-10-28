@@ -192,18 +192,36 @@ onBeforeUnmount(() => {
     padding: 0 @gap-md @gap-md;
     background: @idc-bg;
 
+    // 与全国地图页保持一致的顶边品牌线，两页来回跳转时头部才连得上
+    &::before {
+        content: '';
+        flex: none;
+        height: 2px;
+        margin: 0 -@gap-md @gap-sm;
+        background: linear-gradient(90deg, @idc-brand-bright, @idc-brand 30%, @idc-brand-deep 65%, fade(@idc-brand-deep, 5%));
+    }
+
     &__head {
         display: flex;
         align-items: center;
         height: 56px;
         flex: none;
+        padding-bottom: @gap-sm;
+        border-bottom: 1px solid transparent;
+        border-image: linear-gradient(90deg, @idc-brand-bright, @idc-brand 20%, @idc-brand-deep 48%, fade(@idc-brand-deep, 5%)) 1;
     }
 
     &__title {
         flex: 1;
+        // 左侧 3px 竖条改用背景绘制：border-left 无法渐变
+        padding-left: 13px;
         font-size: @font-lg;
         font-weight: 500;
         color: @idc-text;
+        background-image: linear-gradient(180deg, @idc-brand-bright, @idc-brand, @idc-brand-deep);
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-size: 3px 100%;
     }
 
     &__tools {

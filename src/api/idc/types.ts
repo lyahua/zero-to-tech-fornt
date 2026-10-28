@@ -24,6 +24,8 @@ export interface Site {
     city: string;
     /** 省行政区划码，全国视图按它给省份着色 */
     provinceAdcode: string;
+    /** 站点等级，地图用它区分核心节点，与运行状态无关 */
+    level: SiteLevel;
     /** 站点在地图上的定位点，WGS-84 经纬度 */
     lng: number;
     lat: number;

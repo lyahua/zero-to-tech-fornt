@@ -23,9 +23,17 @@
  * 内网部署拿不到 DataV 的 CDN，外链地图必然白屏。
  */
 import { getGeoJson, getMetricsSnapshot, subscribeMetrics } from '@/api/idc';
-import { CANVAS, STATUS_COLOR } from '@/api/idc/palette';
-import type { Site } from '@/api/idc';
+import { BRAND, brandAlpha, CANVAS, STATUS_COLOR } from '@/api/idc/palette';
+import type { RunStatus, Site } from '@/api/idc';
 import { registerMap, useEchart } from '@/javascript/hooks/useEchart';
+
+/** 状态严重度，同省多站点时决定省份底色取哪一个 */
+const SEVERITY: Record<RunStatus, number> = {
+    offline: 3,
+    alarm: 2,
+    warning: 1,
+    normal: 0,
+};
 
 const props = defineProps<{ siteAdcode?: string }>();
 const emit = defineEmits<{
@@ -77,6 +85,10 @@ const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 function sitePoints(sites: Site[]) {
     const normal: any[] = [];
     const bad: any[] = [];
+    // 全国比例下京津两地几乎重叠，按「更靠北的近邻数量」错开标签方位
+    const northNear = (s: Site) =>
+        sites.filter(o => o.id !== s.id && o.lat > s.lat && o.lat - s.lat < 1.5 && Math.abs(o.lng - s.lng) < 2)
+            .length;
     for (const s of sites) {
         const item = {
             name: s.name,
@@ -85,16 +97,54 @@ function sitePoints(sites: Site[]) {
             status: s.status,
             uPct: pct(s.uUsed, s.uTotal),
             alarmCount: s.alarmCount,
+            label: { position: northNear(s) % 2 ? 'bottom' : 'right' },
+            // 核心站点是「等级」不是「状态」，所以荣誉用金色实环表达，
+            // 品牌红只做外发光。这样站点转为告警时红色仍占主导，两者不会混读
+            ...(s.level === 'core'
+                ? {
+                      symbol: 'circle',
+                      itemStyle: {
+                          borderColor: BRAND.gold,
+                          borderWidth: 2,
+                          shadowColor: brandAlpha(0.6),
+                          shadowBlur: 10,
+                      },
+                  }
+                : null),
         };
         (s.status === 'alarm' || s.status === 'warning' ? bad : normal).push(item);
     }
     return { normal, bad };
 }
 
+/**
+ * 有站点省份的高亮底色
+ *
+ * 同一省份被多个站点命中时取最严重状态，避免后写入的 region 覆盖前一个。
+ */
+function siteRegions(sites: Site[]) {
+    const byProvince = new Map<string, RunStatus>();
+    for (const s of sites) {
+        const prev = byProvince.get(s.province);
+        if (!prev || SEVERITY[s.status] > SEVERITY[prev]) byProvince.set(s.province, s.status);
+    }
+    return [...byProvince].map(([name, status]) => ({
+        name,
+        itemStyle: {
+            areaColor: `${STATUS_COLOR[status]}66`,
+            borderColor: STATUS_COLOR[status],
+            borderWidth: 1.2,
+        },
+    }));
+}
+
 /** 全国视图：省份底色 + 站点散点 + 骨干链路 */
 async function renderNational() {
     loading.value = true;
     error.value = '';
+    // 必须在这里清掉：面包屑末级和「返回全国」都挂 v-if="site"，
+    // 不清就会从城市视图返回后继续显示，点一次还会再 emit 一次 back
+    site.value = undefined;
     try {
         if (!registered.has('100000')) {
             registerMap('100000', (await getGeoJson('100000')) as any);
@@ -149,24 +199,25 @@ async function renderNational() {
                 geo: {
                     map: '100000',
                     roam: true,
-                    zoom: 1.15,
-                    center: [104.5, 36],
+                    // 首屏聚焦站点带（成都—西安—京津—杭州—珠海），
+                    // 用全国全图比例会把六个点挤成一小簇
+                    zoom: 2,
+                    center: [112.5, 31],
                     label: { show: false },
                     itemStyle: {
-                        areaColor: '#152238',
-                        borderColor: '#2b3d5c',
-                        borderWidth: 0.8,
+                        areaColor: '#233a5c',
+                        borderColor: '#5b7fb0',
+                        borderWidth: 1,
+                        shadowColor: 'rgba(56, 189, 248, 0.35)',
+                        shadowBlur: 12,
                     },
                     emphasis: {
-                        label: { show: true, color: '#e2e8f0', fontSize: 11 },
-                        itemStyle: { areaColor: '#1e3a5f' },
+                        label: { show: true, color: '#f1f5f9', fontSize: 11 },
+                        itemStyle: { areaColor: '#3b6ea8' },
                     },
                     // 有站点的省份按状态着色。用 regions 而不是另挂 series，
-                    // 避免地图被覆盖后点不中区域
-                    regions: m.sites.map(s => ({
-                        name: s.province,
-                        itemStyle: { areaColor: `${STATUS_COLOR[s.status]}44` },
-                    })),
+                    // 避免地图被覆盖后点不中区域。同省多站点时取最严重状态
+                    regions: siteRegions(m.sites),
                 },
                 series: [
                     {
@@ -191,7 +242,7 @@ async function renderNational() {
                             show: true,
                             position: 'right',
                             formatter: '{b}',
-                            color: '#94a3b8',
+                            color: '#cbd5e1',
                             fontSize: 11,
                         },
                         data: normal,
@@ -277,15 +328,17 @@ async function renderCity(adcode: string) {
                     map: adcode,
                     roam: true,
                     zoom: 1.12,
-                    label: { show: true, color: '#64748b', fontSize: 10 },
+                    label: { show: true, color: '#94a3b8', fontSize: 10 },
                     itemStyle: {
-                        areaColor: '#152238',
-                        borderColor: '#2b3d5c',
-                        borderWidth: 0.8,
+                        areaColor: '#233a5c',
+                        borderColor: '#5b7fb0',
+                        borderWidth: 1,
+                        shadowColor: 'rgba(56, 189, 248, 0.3)',
+                        shadowBlur: 10,
                     },
                     emphasis: {
-                        label: { show: true, color: '#e2e8f0' },
-                        itemStyle: { areaColor: '#1e3a5f' },
+                        label: { show: true, color: '#f1f5f9' },
+                        itemStyle: { areaColor: '#3b6ea8' },
                     },
                 },
                 series: [
@@ -351,10 +404,7 @@ function patch() {
             .filter(Boolean);
         setOption({
             geo: {
-                regions: m.sites.map(s => ({
-                    name: s.province,
-                    itemStyle: { areaColor: `${STATUS_COLOR[s.status]}44` },
-                })),
+                regions: siteRegions(m.sites),
             },
             series: [
                 { id: 'links', data: linkLines },

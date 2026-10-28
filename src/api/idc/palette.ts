@@ -30,6 +30,25 @@ export const CANVAS = {
     accent: '#38bdf8',
 };
 
+/**
+ * 品牌红与荣誉金，供 canvas 侧使用，取值与 idc-dark.less 的
+ * @idc-brand / @idc-brand-deep / @idc-brand-bright / @idc-gold 一一对应。
+ * 只给装饰与荣誉标记用：它和 STATUS_COLOR.alarm 色相几乎重合，
+ * 一旦进入状态或温度编码，「红色深浅 = 严重程度」就失效了。
+ */
+export const BRAND = {
+    base: '#c54b4d',
+    deep: '#983133',
+    bright: '#d4797b',
+    gold: '#d4a24c',
+};
+
+/** 品牌红加透明度，canvas 侧替代 rgba 硬编码 */
+export const brandAlpha = (a: number) => {
+    const [r, g, b] = hexToRgb(BRAND.base);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
 /** 温度色阶：进风温度 ℃ → 颜色 */
 const TEMP_STOPS: [number, string][] = [
     [21.5, '#3b82f6'],

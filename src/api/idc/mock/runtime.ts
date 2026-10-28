@@ -217,6 +217,7 @@ function buildSite(site: SiteSpec): Site {
         province: site.province,
         city: site.city,
         provinceAdcode: site.provinceAdcode,
+        level: site.level,
         lng: site.lng,
         lat: site.lat,
         roomCount: rooms.length,
@@ -324,9 +325,17 @@ function buildAlarms(sites: Site[]): Alarm[] {
 
 /** 骨干链路拓扑：核心站点两两互联，区域站点上联最近核心 */
 const LINK_SPECS = [
+    // 核心站点两两互联
     { from: 'ZH', to: 'HZ', bwMbps: 100_000 },
-    { from: 'HZ', to: 'CD', bwMbps: 40_000 },
-    { from: 'ZH', to: 'CD', bwMbps: 40_000 },
+    { from: 'ZH', to: 'BJ', bwMbps: 100_000 },
+    { from: 'ZH', to: 'WQ', bwMbps: 80_000 },
+    { from: 'HZ', to: 'BJ', bwMbps: 100_000 },
+    { from: 'HZ', to: 'WQ', bwMbps: 80_000 },
+    { from: 'BJ', to: 'WQ', bwMbps: 100_000 },
+    // 区域站点双上联最近核心：成都→珠海/杭州，西安→北京
+    { from: 'CD', to: 'ZH', bwMbps: 40_000 },
+    { from: 'CD', to: 'HZ', bwMbps: 40_000 },
+    { from: 'XA', to: 'BJ', bwMbps: 40_000 },
 ];
 
 function buildLinks(sites: Site[]): Link[] {

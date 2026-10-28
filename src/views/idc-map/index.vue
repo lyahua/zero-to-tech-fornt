@@ -103,19 +103,40 @@ onBeforeUnmount(() => {
     height: 100vh;
     padding: 0 @gap-md @gap-md;
     background: @idc-bg;
+    // 页面按 100vh 设计，任何子项溢出都不该顶出页面级滚动条
+    overflow: hidden;
+
+    // 顶边整幅品牌线：红色唯一可以放心铺满宽度的位置，
+    // 因为它在标题之上、不属于任何数据面板，不会被读成告警区
+    &::before {
+        content: '';
+        flex: none;
+        height: 2px;
+        margin: 0 -@gap-md @gap-sm;
+        background: linear-gradient(90deg, @idc-brand-bright, @idc-brand 30%, @idc-brand-deep 65%, fade(@idc-brand-deep, 5%));
+    }
 
     &__head {
         display: flex;
         align-items: center;
         height: 56px;
         flex: none;
+        padding-bottom: @gap-sm;
+        border-bottom: 1px solid transparent;
+        border-image: linear-gradient(90deg, @idc-brand-bright, @idc-brand 20%, @idc-brand-deep 48%, fade(@idc-brand-deep, 5%)) 1;
     }
 
     &__title {
         flex: 1;
+        // 左侧 3px 竖条改用背景绘制：border-left 无法渐变
+        padding-left: 13px;
         font-size: @font-lg;
         font-weight: 500;
         color: @idc-text;
+        background-image: linear-gradient(180deg, @idc-brand-bright, @idc-brand, @idc-brand-deep);
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-size: 3px 100%;
     }
 
     &__tools {
@@ -152,6 +173,17 @@ onBeforeUnmount(() => {
         flex-direction: column;
         gap: @gap-md;
         min-height: 0;
+        // 下钻后侧栏是「站点详情 + 规模榜 + 实时告警」三块，
+        // 矮屏下总高必然超过可用高度，只能让侧栏自己滚，
+        // 否则会顶出页面级滚动条
+        overflow-y: auto;
+    }
+
+    &__site {
+        // 详情面板内部 __body 自带滚动，所以允许它收缩；
+        // 不给 min-height 会被压到只剩标题，给了 132px 至少留出一行指标
+        flex: 0 1 auto;
+        min-height: 132px;
     }
 
     &__rank {
@@ -159,7 +191,10 @@ onBeforeUnmount(() => {
     }
 
     &__alarm {
-        flex: 1;
+        // 不写 flex: 1 是因为矮屏下它会被压到几像素，列表整块看不见，
+        // 内容溢出面板后还会顶出页面级滚动条
+        flex: 1 1 160px;
+        min-height: 160px;
     }
 }
 </style>

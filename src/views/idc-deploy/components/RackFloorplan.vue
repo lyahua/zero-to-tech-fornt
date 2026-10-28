@@ -57,7 +57,7 @@ const TEMP_LEGEND = [
 const colorMode = ref<ColorMode>('temp');
 const chartEl = ref<HTMLElement>();
 
-/** grid 内边距，与下面 option.grid 保持一致，用于换算每米像素数 */
+/** grid 内边距，与下面 option.grid 保持一致 */
 const GRID = { left: 40, right: 18, top: 20, bottom: 30 };
 
 const rackColor = (r: Rack) => {
@@ -75,7 +75,7 @@ const { setOption } = useEchart(chartEl, {
             if (params.componentType === 'series' && params.data?.rack) emit('pick', params.data.rack);
         },
     },
-    // 容器尺寸变了，每米像素数就变了，必须重算坐标轴范围才能保持等比
+    // 轴范围只跟机房物理尺寸有关，重绘只为让 custom series 按新像素密度重算机柜矩形
     onResize: () => render(),
 });
 
@@ -85,18 +85,17 @@ function renderItem(params: any, api: any) {
     if (!rack) return;
     const selected = rack.id === props.selectedId;
     const [cx, cy] = api.coord([rack.x, -rack.z]);
-    // 机柜是正方形投影，横纵比例由 x 轴单位像素宽度决定，保证缩放时不变形
-    const px = api.size([rackSize.w, rackSize.d])[0];
-    const halfW = (px * rackSize.w) / rackSize.w;
-    const halfD = (px * rackSize.d) / rackSize.w;
+    // 两轴各自换算像素：x 轴铺满绘图区宽度，机柜才会呈扁平矩形而非方块
+    const wPx = api.size([rackSize.w, 0])[0];
+    const hPx = api.size([0, rackSize.d])[1];
 
     const rect = {
         type: 'rect',
         shape: {
-            x: cx - halfW / 2,
-            y: cy - halfD / 2,
-            width: halfW,
-            height: halfD,
+            x: cx - wPx / 2,
+            y: cy - hPx / 2,
+            width: wPx,
+            height: hPx,
             r: 2,
         },
         style: api.style(),
@@ -111,7 +110,7 @@ function renderItem(params: any, api: any) {
             textAlign: 'center',
             textVerticalAlign: 'middle',
             fill: '#0b1220',
-            fontSize: Math.max(9, Math.min(12, px * 0.3)),
+            fontSize: Math.max(9, Math.min(13, hPx * 0.5)),
             fontWeight: 600,
         },
         silent: true,
@@ -143,13 +142,10 @@ function render() {
     const { plan } = props;
     const pad = 1.5;
 
-    // 等比换算：先固定 x 轴物理范围，再按绘图区像素比例反推 y 轴范围。
-    // 直接给两个轴各自的物理范围，机柜会随容器宽扁比被拉成长条。
-    const el = chartEl.value;
-    const gridW = Math.max(120, (el?.clientWidth ?? 800) - GRID.left - GRID.right);
-    const gridH = Math.max(120, (el?.clientHeight ?? 480) - GRID.top - GRID.bottom);
+    // 两轴各自按物理尺寸铺满绘图区：不再做等比反推，
+    // 否则宽扁容器会把 y 轴范围撑大，机柜被压成正方形小块
     const xSpan = plan.room.w + pad * 2;
-    const ySpan = Math.max(plan.room.d + pad * 2, (xSpan * gridH) / gridW);
+    const ySpan = plan.room.d + pad * 2;
     const xMin = round1(-xSpan / 2);
     const xMax = round1(xSpan / 2);
     const yMin = round1(-ySpan / 2);
