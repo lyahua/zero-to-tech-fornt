@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <title>iframe 子页（极简）</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 12px;
+                font: 14px/1.7 "Microsoft YaHei", sans-serif;
+                color: #323233;
+                background: #fffbe6;
+            }
+            h3 {
+                margin: 0 0 8px;
+                font-size: 14px;
+            }
+            .row {
+                display: flex;
+                gap: 8px;
+            }
+            input {
+                flex: 1;
+                min-width: 0;
+                padding: 5px 8px;
+                border: 1px solid #dcdfe6;
+                border-radius: 4px;
+            }
+            button {
+                padding: 5px 12px;
+                border: none;
+                border-radius: 4px;
+                background: #1989fa;
+                color: #fff;
+                cursor: pointer;
+            }
+            ul {
+                margin: 10px 0 0;
+                padding: 8px;
+                max-height: 180px;
+                overflow: auto;
+                list-style: none;
+                border: 1px dashed #e0cfa0;
+                border-radius: 4px;
+                background: #fff;
+                font-size: 13px;
+            }
+            li {
+                margin-bottom: 4px;
+            }
+            .tip {
+                margin: 8px 0 0;
+                font-size: 12px;
+                color: #969799;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>我是 iframe 里的子页面</h3>
+
+        <div class="row">
+            <input id="ipt" placeholder="说点什么，发给父页" />
+            <button id="btn">发给父页</button>
+        </div>
+
+        <ul id="list"></ul>
+        <p class="tip">本演示父/子同源，所以两边 origin 都是 location.origin</p>
+
+        <script>
+            // 本演示父页与子页同源，父页 origin 就是 location.origin。
+            // 跨域时把它换成写死的对方地址，例如 'https://other-site.com'，绝不要写 '*'
+            var PARENT_ORIGIN = location.origin;
+
+            var list = document.getElementById('list');
+            var ipt = document.getElementById('ipt');
+
+            function add(text) {
+                var li = document.createElement('li');
+                li.textContent = text;
+                list.prepend(li);
+            }
+
+            // ── 子 → 父：目标不是 window，而是 window.parent ──────────
+            document.getElementById('btn').onclick = function () {
+                var text = ipt.value.trim();
+                if (!text) return;
+                // 第 1 个参数：任意可序列化对象；第 2 个参数：只发给这个 origin
+                parent.postMessage({ from: 'child', text: text }, PARENT_ORIGIN);
+                add('子 → 父：' + text);
+                ipt.value = '';
+            };
+
+            // ── 父 → 子：监听自己的 window 即可收到 ───────────────────
+            window.addEventListener('message', function (e) {
+                if (e.origin !== PARENT_ORIGIN) return; // 校验来源，别的页面发的不收
+                if (!e.data || e.data.from !== 'parent') return; // 校验协议，不认识的不收
+                add('父 → 子：' + e.data.text);
+            });
+
+            add('我在 iframe 里，等父页发消息…');
+        </script>
+    </body>
+</html>

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>第三方页面（iframe 子页 Demo）</title>
+        <style>
+            :root {
+                --bg: #f7f8fa;
+                --panel: #fff;
+                --text: #323233;
+                --dim: #969799;
+                --brand: #1989fa;
+                --line: #ebedf0;
+            }
+            /* 父页 init 下发的主题 */
+            :root[data-theme='dark'] {
+                --bg: #0b1220;
+                --panel: #111a2e;
+                --text: #cbd5e1;
+                --dim: #64748b;
+                --brand: #38bdf8;
+                --line: #1e293b;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                padding: 16px;
+                background: var(--bg);
+                color: var(--text);
+                font: 14px/1.6 -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            }
+            h2 {
+                margin: 0 0 4px;
+                font-size: 16px;
+            }
+            .sub {
+                color: var(--dim);
+                font-size: 12px;
+                word-break: break-all;
+            }
+            .row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 12px 0;
+            }
+            button {
+                padding: 6px 12px;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                background: var(--panel);
+                color: var(--text);
+                font-size: 13px;
+                cursor: pointer;
+            }
+            button.primary {
+                background: var(--brand);
+                border-color: var(--brand);
+                color: #fff;
+            }
+            .card {
+                padding: 12px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--panel);
+            }
+            .stats {
+                display: flex;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            .stats b {
+                display: block;
+                font-size: 20px;
+                color: var(--brand);
+            }
+            .stats span {
+                font-size: 12px;
+                color: var(--dim);
+            }
+            .log {
+                margin-top: 12px;
+                padding: 10px;
+                height: 160px;
+                overflow: auto;
+                border: 1px dashed var(--line);
+                border-radius: 6px;
+                background: var(--panel);
+                font-family: Consolas, Menlo, monospace;
+                font-size: 12px;
+            }
+            .log div {
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+            .log .in {
+                color: var(--brand);
+            }
+            .log .out {
+                color: #07c160;
+            }
+            .log .err {
+                color: #ee0a24;
+            }
+            .spacer {
+                height: 120px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>第三方页面 · iframe 子页</h2>
+        <p class="sub">
+            本页模拟被嵌入的第三方站点。父页 origin 从 document.referrer 推断（可用
+            <code>?parent=http://host:port</code> 覆盖）。
+        </p>
+
+        <div class="row">
+            <button class="primary" id="btn-event">向父页上报事件</button>
+            <button id="btn-grow">撑高内容（触发 resize）</button>
+            <button id="btn-close">请求父页关闭</button>
+                    <button id="btn-bad">自发自收伪造消息（父页应忽略）</button>
+        </div>
+
+        <div class="card">
+            <div class="stats">
+                <div><b id="s-online">--</b><span>在线设备</span></div>
+                <div><b id="s-load">--</b><span>负载</span></div>
+                <div><b id="s-pong">0</b><span>收到 ping 次数</span></div>
+            </div>
+            <div class="sub" id="theme-tip">主题：light（等待父页 init）</div>
+        </div>
+
+        <div class="log" id="log"></div>
+        <div class="spacer"></div>
+
+        <script>
+            (function () {
+                var PARENT_ORIGIN = (function () {
+                    try {
+                        var forced = new URLSearchParams(location.search).get('parent');
+                        if (forced) return new URL(forced).origin;
+                        if (document.referrer) return new URL(document.referrer).origin;
+                    } catch (e) {
+                        /* ignore */
+                    }
+                    return '';
+                })();
+
+                var logEl = document.getElementById('log');
+
+                function log(kind, text) {
+                    var el = document.createElement('div');
+                    el.className = kind;
+                    el.textContent =
+                        (kind === 'in' ? '← ' : kind === 'out' ? '→ ' : '× ') +
+                        new Date().toLocaleTimeString() +
+                        '  ' +
+                        text;
+                    logEl.appendChild(el);
+                    logEl.scrollTop = logEl.scrollHeight;
+                }
+
+                var inIframe = window.self !== window.top;
+
+                /**
+                 * 只有确知父页 origin 才发送：postMessage(data, '*') 会把数据广播给
+                 * 任意被劫持的框架，这里宁可不发也不降级为 '*'
+                 */
+                function send(type, payload, replyTo) {
+                    if (!inIframe) {
+                        log('err', '不在 iframe 中，无法向父页发送 ' + type);
+                        return;
+                    }
+                    if (!PARENT_ORIGIN) {
+                        log('err', '父页 origin 未知，已拒发 ' + type);
+                        return;
+                    }
+                    parent.postMessage(
+                        { source: 'iframe-child', type: type, payload: payload, replyTo: replyTo },
+                        PARENT_ORIGIN
+                    );
+                    log('out', type + ' ' + JSON.stringify(payload || {}));
+                }
+
+                function reply(replyTo, data, error) {
+                    if (!replyTo) return;
+                    send(
+                        'rpc-reply',
+                        error ? { ok: false, error: error } : { ok: true, data: data },
+                        replyTo
+                    );
+                }
+
+                var pong = 0;
+
+                window.addEventListener('message', function (event) {
+                    // 1 来源校验：不是父页的一律丢弃
+                    if (!PARENT_ORIGIN || event.origin !== PARENT_ORIGIN) {
+                        log('err', '忽略非法来源消息: ' + event.origin);
+                        return;
+                    }
+                    var msg = event.data || {};
+                    // 2 协议校验
+                    if (msg.source !== 'iframe-parent' || typeof msg.type !== 'string') {
+                        log('err', '忽略非本协议消息');
+                        return;
+                    }
+
+                    log('in', msg.type + ' ' + JSON.stringify(msg.payload || {}));
+                    var payload = msg.payload || {};
+
+                    switch (msg.type) {
+                        case 'init':
+                            setTheme(payload.theme || 'light');
+                            reply(msg.replyTo, { ok: true, url: location.href });
+                            break;
+
+                        case 'ping':
+                            pong += 1;
+                            document.getElementById('s-pong').textContent = pong;
+                            reply(msg.replyTo, { pong: 'pong', count: pong });
+                            break;
+
+                        case 'queryStats':
+                            reply(msg.replyTo, {
+                                online: 128 + Math.floor(Math.random() * 20),
+                                load: (Math.random() * 100).toFixed(1) + '%',
+                                ts: new Date().toISOString(),
+                            });
+                            break;
+
+                        case 'setTheme':
+                            setTheme(payload.theme);
+                            reply(msg.replyTo, { theme: payload.theme });
+                            break;
+
+                        case 'navigate':
+                            document.title = payload.title || document.title;
+                            log('out', '子页内部跳转: ' + payload.title);
+                            break;
+
+                        default:
+                            reply(msg.replyTo, null, '子页未实现的消息类型: ' + msg.type);
+                    }
+                });
+
+                function setTheme(theme) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                    document.getElementById('theme-tip').textContent = '主题：' + theme;
+                }
+
+                document.getElementById('btn-event').onclick = function () {
+                    send('child-event', { action: 'row-click', id: 'RACK-' + Date.now() % 1000 });
+                };
+
+                document.getElementById('btn-grow').onclick = function () {
+                    var div = document.createElement('div');
+                    div.className = 'spacer';
+                    document.body.appendChild(div);
+                };
+
+                document.getElementById('btn-close').onclick = function () {
+                    send('close', { reason: 'user-click' });
+                };
+
+                // 演示父页的 origin / source 校验：伪造一条来源不对的消息
+                document.getElementById('btn-bad').onclick = function () {
+                    if (PARENT_ORIGIN) {
+                        window.postMessage(
+                            { source: 'iframe-parent', type: 'ping', payload: { fake: true } },
+                            '*'
+                        );
+                        log('out', '已发出伪造消息，观察父页日志：应被 origin 校验拦截');
+                    } else {
+                        log('err', '父页 origin 未知');
+                    }
+                };
+
+                // 高度自适应：内容变化就上报，父页据此设置 iframe 的像素高度
+                var last = 0;
+                function reportHeight() {
+                    var h = document.documentElement.scrollHeight;
+                    if (h === last) return;
+                    last = h;
+                    send('resize', { height: h });
+                }
+                if (window.ResizeObserver) {
+                    new ResizeObserver(reportHeight).observe(document.documentElement);
+                } else {
+                    setInterval(reportHeight, 500);
+                }
+
+                // 握手：监听器注册完成后再发 ready，父页收到才下发 init
+                send('ready', { ua: navigator.userAgent.slice(0, 40), referrer: document.referrer });
+            })();
+        </script>
+    </body>
+</html>

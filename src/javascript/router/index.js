@@ -59,6 +59,18 @@ const routes = [
         meta: { title: 'MBTI · SWOT 可视化' },
     },
     {
+        path: '/iframe-simple',
+        name: 'iframe-simple',
+        component: () => import('@/views/iframe-simple/index.vue'),
+        meta: { title: 'iframe 通信（极简）' },
+    },
+    {
+        path: '/iframse',
+        name: 'iframse',
+        component: () => import('@/views/iframse/index.vue'),
+        meta: { title: 'iframe 通信示例' },
+    },
+    {
         path: '/test',
         name: 'test',
         component: () => import('@/views/test/index.vue'),
